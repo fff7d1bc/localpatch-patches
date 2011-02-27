@@ -1,0 +1,74 @@
+diff --git a/src/conky.c b/src/conky.c
+index 5f2f617..7058749 100644
+--- a/src/conky.c
++++ b/src/conky.c
+@@ -1373,6 +1373,10 @@ void generate_text_internal(char *p, int p_max_size,
+ 			OBJ(memfree) {
+ 				human_readable(cur->memfree * 1024, p, 255);
+ 			}
++
++			OBJ(memdirty) {
++				human_readable(cur->memdirty * 1024, p, 255);
++			}
+ 			OBJ(memmax) {
+ 				human_readable(cur->memmax * 1024, p, 255);
+ 			}
+diff --git a/src/conky.h b/src/conky.h
+index 30e73a0..832892a 100644
+--- a/src/conky.h
++++ b/src/conky.h
+@@ -222,7 +222,7 @@ struct information {
+ 	double uptime;
+ 
+ 	/* memory information in kilobytes */
+-	unsigned long long mem, memeasyfree, memfree, memmax, swap, swapfree, swapmax;
++	unsigned long long memdirty, mem, memeasyfree, memfree, memmax, swap, swapfree, swapmax;
+ 	unsigned long long bufmem, buffers, cached;
+ 
+ 	unsigned short procs;
+diff --git a/src/core.c b/src/core.c
+index e0e7218..4630020 100644
+--- a/src/core.c
++++ b/src/core.c
+@@ -618,6 +618,7 @@ struct text_object *construct_text_object(const char *s, const char *arg, long
+ 		parse_mboxscan_arg(obj, arg);
+ 	END OBJ(mem, &update_meminfo)
+ 	END OBJ(memeasyfree, &update_meminfo)
++	END OBJ(memdirty, &update_meminfo)
+ 	END OBJ(memfree, &update_meminfo)
+ 	END OBJ(memmax, &update_meminfo)
+ 	END OBJ(memperc, &update_meminfo)
+diff --git a/src/linux.c b/src/linux.c
+index ce5f733..b0cf1b1 100644
+--- a/src/linux.c
++++ b/src/linux.c
+@@ -163,7 +163,7 @@ int update_meminfo(void)
+ 	char buf[256];
+ 
+ 	info.mem = info.memmax = info.swap = info.swapfree = info.swapmax = info.bufmem =
+-		info.buffers = info.cached = info.memfree = info.memeasyfree = 0;
++		info.buffers = info.cached = info.memfree = info.memeasyfree = info.memdirty = 0;
+ 
+ 	if (!(meminfo_fp = open_file("/proc/meminfo", &rep))) {
+ 		return 0;
+@@ -186,6 +186,8 @@ int update_meminfo(void)
+ 			sscanf(buf, "%*s %llu", &info.buffers);
+ 		} else if (strncmp(buf, "Cached:", 7) == 0) {
+ 			sscanf(buf, "%*s %llu", &info.cached);
++		} else if (strncmp(buf, "Dirty:", 6) == 0) {
++			sscanf(buf, "%*s %llu", &info.memdirty);
+ 		}
+ 	}
+ 
+diff --git a/src/text_object.h b/src/text_object.h
+index 52d19e7..2f607ca 100644
+--- a/src/text_object.h
++++ b/src/text_object.h
+@@ -206,6 +206,7 @@ enum text_object_type {
+ 	OBJ_memeasyfree,
+ 	OBJ_memfree,
+ 	OBJ_memgauge,
++	OBJ_memdirty,
+ #ifdef X11
+ 	OBJ_memgraph,
+ #endif /* X11 */
