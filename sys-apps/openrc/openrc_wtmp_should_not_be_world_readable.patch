@@ -1,0 +1,25 @@
+From 343f727179e13a3ff84d82ce615ebf044638859e Mon Sep 17 00:00:00 2001
+From: Piotr Karbowski <piotr.karbowski@gmail.com>
+Date: Fri, 18 Mar 2011 12:34:14 +0100
+Subject: [PATCH] wtmp should not be world readable.
+
+---
+ init.d/bootmisc.in |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+
+diff --git a/init.d/bootmisc.in b/init.d/bootmisc.in
+index 1298740..943fcb7 100644
+--- a/init.d/bootmisc.in
++++ b/init.d/bootmisc.in
+@@ -71,7 +71,7 @@ mkutmp()
+ 	: >"$1"
+ 	# Not all systems have the utmp group
+ 	chgrp utmp "$1" 2>/dev/null
+-	chmod 0664 "$1"
++	chmod 0660 "$1"
+ }
+ 
+ start()
+-- 
+1.7.4.1
+
