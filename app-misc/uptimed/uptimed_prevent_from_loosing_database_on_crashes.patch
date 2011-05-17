@@ -1,0 +1,29 @@
+From 9a79c0807d29e056406022d96e0e59a3fbe8632c Mon Sep 17 00:00:00 2001
+From: Piotr Karbowski <piotr.karbowski@gmail.com>
+Date: Tue, 17 May 2011 23:38:59 +0200
+Subject: [PATCH] Prevent from loosing database on crashes.
+
+  Ripped from debian's bug tracker.
+
+  The  fclose() function flushes the stream pointed to by fp (writing any
+  buffered output data using fflush(3)) and closes  the  underlying  file
+  descriptor.
+---
+ libuptimed/urec.c |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
+
+diff --git a/libuptimed/urec.c b/libuptimed/urec.c
+index 5a73da4..d513e38 100644
+--- a/libuptimed/urec.c
++++ b/libuptimed/urec.c
+@@ -263,6 +263,7 @@ void save_records(int max, time_t log_threshold) {
+ 			if ((max > 0) && (++i >= max)) break;
+ 		}
+ 	}
++	fflush(f);
+ 	fclose(f);
+ 	rename(FILE_RECORDS, FILE_RECORDS".old");
+ 	rename(FILE_RECORDS".tmp", FILE_RECORDS);
+-- 
+1.7.5.rc3
+
