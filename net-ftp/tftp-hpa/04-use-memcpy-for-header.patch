@@ -1,0 +1,31 @@
+Description: FORTIFY thinks "cp" isn't big enough for a safe strcpy(),
+ so switch to memcpy instead.
+Author: Kees Cook <kees@ubuntu.com>
+Bug-Ubuntu: https://bugs.launchpad.net/ubuntu/+source/netkit-tftp/+bug/691345
+
+Index: tftp-hpa-5.0/tftp/tftp.c
+===================================================================
+--- tftp-hpa-5.0.orig/tftp/tftp.c	2010-12-16 17:44:40.430321627 -0800
++++ tftp-hpa-5.0/tftp/tftp.c	2010-12-16 17:52:18.289075145 -0800
+@@ -279,14 +279,17 @@
+             struct tftphdr *tp, const char *mode)
+ {
+     char *cp;
++    int len;
+ 
+     tp->th_opcode = htons((u_short) request);
+     cp = (char *)&(tp->th_stuff);
+-    strcpy(cp, name);
+-    cp += strlen(name);
++    len = strlen(name);
++    memcpy(cp, name, len);
++    cp += len;
+     *cp++ = '\0';
+-    strcpy(cp, mode);
+-    cp += strlen(mode);
++    len = strlen(mode);
++    memcpy(cp, mode, len);
++    cp += len;
+     *cp++ = '\0';
+     return (cp - (char *)tp);
+ }
