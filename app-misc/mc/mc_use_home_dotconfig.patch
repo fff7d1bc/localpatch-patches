@@ -1,0 +1,1793 @@
+From fd0ad015b5b82bf8ec1c00443dd559eb64abc737 Mon Sep 17 00:00:00 2001
+From: Piotr Karbowski <piotr.karbowski@gmail.com>
+Date: Thu, 13 Oct 2011 15:32:13 +0200
+Subject: [PATCH] Use $HOME/.config/mc instaed of $HOME/.mc.
+
+Almost like support for XDG Base Directory Specification, almost.
+---
+ contrib/dist/redhat/mc.spec.in    |    2 +-
+ doc/man/es/mc.1.in                |   48 +++++++++++++++---------------
+ doc/man/hu/mc.1.in                |   44 ++++++++++++++--------------
+ doc/man/it/mc.1.in                |   48 +++++++++++++++---------------
+ doc/man/mc.1.in                   |   58 ++++++++++++++++++------------------
+ doc/man/mcedit.1.in               |   28 +++++++++---------
+ doc/man/mcview.1.in               |    6 ++--
+ doc/man/pl/mc.1.in                |   52 ++++++++++++++++----------------
+ doc/man/ru/mc.1.in                |   58 ++++++++++++++++++------------------
+ doc/man/sr/mc.1.in                |   48 +++++++++++++++---------------
+ lib/filehighlight/ini-file-read.c |    2 +-
+ lib/fileloc.h                     |    4 +-
+ lib/skin/ini-file.c               |    2 +-
+ lib/tty/keyxdef.c                 |    2 +-
+ lib/vfs/mc-vfs/extfs/README       |   10 +++---
+ lib/vfs/mc-vfs/fish/README.fish   |    2 +-
+ lib/widget/history.c              |    2 +-
+ src/filemanager/tree.c            |    4 +-
+ src/setup.c                       |   12 ++++----
+ 19 files changed, 216 insertions(+), 216 deletions(-)
+
+diff --git a/contrib/dist/redhat/mc.spec.in b/contrib/dist/redhat/mc.spec.in
+index 68f8e41..fe5eaa8 100644
+--- a/contrib/dist/redhat/mc.spec.in
++++ b/contrib/dist/redhat/mc.spec.in
+@@ -253,7 +253,7 @@ rm -rf $RPM_BUILD_ROOT
+ * Sat Sep 21 2002 Pavel Roskin <proski@gnu.org>
+ - Use FHS-compliant paths.
+ - Drop %%config from files under /usr/share - users are not supposed to
+-  edit them.  Local copies under ~/.mc should be used for that.
++  edit them.  Local copies under ~/.config/mc should be used for that.
+ 
+ * Wed Aug 21 2002 Pavel Roskin <proski@gnu.org>
+ - Change description, update URLs, allow dash in the version.
+diff --git a/doc/man/es/mc.1.in b/doc/man/es/mc.1.in
+index 51d817d..2f044d5 100644
+--- a/doc/man/es/mc.1.in
++++ b/doc/man/es/mc.1.in
+@@ -198,7 +198,7 @@ y el
+ El valor por defecto de auto repetición para los botones del ratón es 400
+ milisegundos. Este valor se puede modificar editando el archivo
+ .\"LINK2"
+-\&~/.mc/ini
++\&~/.config/mc/ini
+ .\"Save Setup"
+ y cambiando el parámetro
+ .IR mouse_repeat_rate .
+@@ -1291,7 +1291,7 @@ Los directorios a ser omitidos deberían ser enumerados en la variable
+ .B ignore_dirs
+ en la sección
+ .B FindFile
+-de nuestro archivo ~/.mc/ini.
++de nuestro archivo ~/.config/mc/ini.
+ .PP
+ Los componentes del directorio deberían ser separados por dos puntos, como en
+ el ejemplo que sigue:
+@@ -1355,7 +1355,7 @@ comando cd interno\&.
+ .\"NODE "    Extension File Edit"
+ .SH "    Editar el Archivo de Extensiones"
+ Abre el archivo
+-.I ~/.mc/bindings
++.I ~/.config/mc/bindings
+ en nuestro editor. El administrador puede optar por editar, en su lugar,
+ el archivo de extensiones del sistema
+ .IR @prefix@/share/mc/mc.ext .
+@@ -1426,9 +1426,9 @@ aquí.
+ .SH "    Edición del Archivo de Menú"
+ El menú de usuario es un menú de acciones útiles que puede ser personalizado
+ por el usuario. Cuando accedemos al menú de usuario se utiliza, si existe,
+-el archivo .mc.menu del directorio actual, pero sólo si es propiedad del
++el archivo .config/mc.menu del directorio actual, pero sólo si es propiedad del
+ usuario o del superusuario y no es modificable por todos.
+-Si no se encuentra allí el archivo, se intenta de la misma manera con ~/.mc/menu,
++Si no se encuentra allí el archivo, se intenta de la misma manera con ~/.config/mc/menu,
+ y si no, mc utiliza el menú por defecto para todo el sistema
+ @prefix@/share/mc/mc.menu.
+ .PP
+@@ -1713,7 +1713,7 @@ regulares son las descritas en ed(1).
+ .I Auto\-Guardar Configuración.
+ Si esta opción está activada, cuando salimos de Midnight Commander las
+ opciones configurables de Midnight Commander se guardan en el archivo
+-~/.mc/ini.
++~/.config/mc/ini.
+ .PP
+ .I Auto Menús.
+ Si está activada, el menú de usuario aparece automáticamente al arrancar.
+@@ -1868,7 +1868,7 @@ desaparezca. Si no, pulsaremos la tecla que nos pide y esperaremos hasta que
+ el diálogo desaparezca.
+ .PP
+ Cuando acabemos con todas las teclas, podríamos Guardar nuestras teclas
+-en nuestro archivo ~/.mc/ini dentro de la sección [terminal:TERM] (donde TERM es el
++en nuestro archivo ~/.config/mc/ini dentro de la sección [terminal:TERM] (donde TERM es el
+ nombre de nuestro terminal actual) o descartarlas. Si todas nuestras teclas funcionan
+ correctamente y no debemos corregir ninguna, entonces (lógico) no se grabará.
+ .\"NODE "    Virtual FS"
+@@ -1951,14 +1951,14 @@ y puede ser impedida por algún cortafuegos.
+ .\"NODE "    Save Setup"
+ .SH "    Guardar Configuración"
+ Al arrancar Midnight Commander se carga la información de inicio del
+-archivo ~/.mc/ini.  Si éste no existe, se cargará la información del
++archivo ~/.config/mc/ini.  Si éste no existe, se cargará la información del
+ archivo de configuración genérico del sistema, @prefix@/share/mc/mc.ini.
+ Si el archivo de configuración genérico del sistema no existe, MC utiliza
+ la configuración por defecto.
+ .PP
+ El comando
+ .I Guardar Configuración
+-crea el archivo ~/.mc/ini guardando la configuración actual de los menús
++crea el archivo ~/.config/mc/ini guardando la configuración actual de los menús
+ .\"LINK2"
+ Izquierdo, Derecho
+ .\"Left and Right Menus"
+@@ -2147,11 +2147,11 @@ que serán válidos hasta salir de Midnight Commander.
+ Si estamos usando
+ .B bash
+ podremos especificar comandos de arranque
+-para el subshell en nuestro archivo ~/.mc/bashrc y
+-mapas de teclado especiales en el archivo ~/.mc/inputrc.
++para el subshell en nuestro archivo ~/.config/mc/bashrc y
++mapas de teclado especiales en el archivo ~/.config/mc/inputrc.
+ Los usuarios de
+ .B tcsh
+-podrán especificar los comandos de arranque en el archivo ~/.mc/tcshrc.
++podrán especificar los comandos de arranque en el archivo ~/.config/mc/tcshrc.
+ .PP
+ Cuando utilizamos el código del subshell, podemos suspender aplicaciones en
+ cualquier momento con la secuencia
+@@ -2604,7 +2604,7 @@ o
+ u otro). Esto está controlado por el archivo
+ .B @prefix@/share/mc/edit.indent.rc
+ que se copia la primera vez que se usa en
+-.B .mc/cedit/edit.indent.rc
++.B .config/mc/cedit/edit.indent.rc
+ en el directorio personal.
+ .PP
+ El editor también visualiza caracteres no estadounidenses (160+). Al editar
+@@ -3129,7 +3129,7 @@ o sin su extensión \.ini. De no indicar la ruta se realiza la búsqueda,
+ en orden, en:
+ .IP
+ 1)
+-.BR ~/.mc/skins/ .
++.BR ~/.config/mc/skins/ .
+ .br
+ 2)
+ .BR @sysconfdir@/mc/skins/ .
+@@ -3468,7 +3468,7 @@ La mayoría de las opciones de Midnight Commander pueden cambiarse desde
+ los menús. Sin embargo, hay un pequeño número de ajustes para los que
+ es necesario editar el archivo de configuración.
+ .PP
+-Estas variables se pueden cambiar en nuestro archivo ~/.mc/ini:
++Estas variables se pueden cambiar en nuestro archivo ~/.config/mc/ini:
+ .PP
+ .I clear_before_exec
+ .IP
+@@ -3596,7 +3596,7 @@ del sistema sin necesidad de privilegios de superusuario. El programa
+ busca definiciones de teclas en el archivo de inicialización del sistema
+ .B @prefix@/share/mc/mc.lib
+ o en el del usuario
+-.BR ~/.mc/ini ,
++.BR ~/.config/mc/ini ,
+ en la sección "terminal:nuestro\-terminal" y si no en "terminal:general".
+ Cada línea comienza con el identificador de la tecla, seguido de un signo
+ de igual y la definición de la tecla. Para representar el carácter de escape
+@@ -3622,7 +3622,7 @@ complete      tecla para completar
+ .PP
+ Ejemplo: para indicar que la secuencia Escape + [ + O + p corresponde
+ a la tecla de insertar, hay que colocar en el archivo
+-.BR ~/.mc/ini :
++.BR ~/.config/mc/ini :
+ .PP
+ .nf
+ insert=\\e[Op
+@@ -3666,7 +3666,7 @@ Archivo de ayuda.
+ .IP
+ Archivo de extensiones por defecto del sistema.
+ .PP
+-.I ~/.mc/bindings
++.I ~/.config/mc/bindings
+ .IP
+ Archivo de usuario de extensiones y configuración de visor y editor. Si
+ está presente prevalece sobre el contenido de los archivos del sistema.
+@@ -3674,17 +3674,17 @@ está presente prevalece sobre el contenido de los archivos del sistema.
+ .I @prefix@/share/mc/mc.ini
+ .IP
+ Archivo de configuración del sistema para Midnight Commander, sólo si
+-el usuario no dispone de su propio ~/.mc/ini.
++el usuario no dispone de su propio ~/.config/mc/ini.
+ .PP
+ .I @prefix@/share/mc/mc.lib
+ .IP
+ Opciones globales de Midnight Commander. Se aplican siempre a todos los
+-usuarios, tengan ~/.mc/ini o no. Actualmente sólo se emplea para los
++usuarios, tengan ~/.config/mc/ini o no. Actualmente sólo se emplea para los
+ .\"LINK2"
+ ajustes de terminal\&.
+ .\"Terminal databases"
+ .PP
+-.I ~/.mc/ini
++.I ~/.config/mc/ini
+ .IP
+ Configuración personal del usuario. Si este archivo está presente entonces
+ se cargará la configuración desde aquí en lugar de desde el archivo de
+@@ -3699,16 +3699,16 @@ programa.
+ .IP
+ Este archivo contiene el menú de aplicaciones por defecto para el sistema.
+ .PP
+-.I ~/.mc/menu
++.I ~/.config/mc/menu
+ .IP
+ Menú de aplicaciones personal del usuario. Si está presente será utilizado
+ en lugar del menú por defecto del sistema.
+ .PP
+-.I ~/.mc/Tree
++.I ~/.config/mc/Tree
+ .IP
+ La lista de directorios para el árbol de directorios y la vista en árbol.
+ .PP
+-.I ./.mc.menu
++.I ./.config/mc.menu
+ .IP
+ Menú local definido por el usuario. Si este archivo
+ está presente será usado en lugar del menú de aplicaciones
+diff --git a/doc/man/hu/mc.1.in b/doc/man/hu/mc.1.in
+index cf39e55..038aa49 100644
+--- a/doc/man/hu/mc.1.in
++++ b/doc/man/hu/mc.1.in
+@@ -68,7 +68,7 @@ arról gondoskodj, hogy az MC\-t ne fordítsd eltérő beállításokkal.
+ .PP
+ A bash és zsh funkciók lehetnének rövidebbek is, de a bash környezete
+ nem fogadja el a program C\-z háttérbe helyezését. A temp fájlok a saját
+-~/.mc/tmp könyvtáradban találhatók, mert ez biztonságosabb, mint a közös
++~/.config/mc/tmp könyvtáradban találhatók, mert ez biztonságosabb, mint a közös
+ írható /tmp könyvtár.
+ .TP
+ .I "\-s"
+@@ -188,7 +188,7 @@ esetén is.
+ Az egérgomb automatikus ismétlésének határértéke alapesetben 400
+ ezredmásodpercnyi. Ez megváltoztatható az
+ .\"LINK2"
+-~/.mc/ini
++~/.config/mc/ini
+ .\"Save Setup"
+ fájlban a
+ .I mouse_repeat_rate
+@@ -1218,7 +1218,7 @@ slow linkkel csatoltak).
+ .PP
+ Az átlépendő könyvtárakat a
+ .B ignore_dirs
+-változó állítja be az ~/.mc/ini fájlod
++változó állítja be az ~/.config/mc/ini fájlod
+ .B FindFile
+ részében.
+ .PP
+@@ -1289,7 +1289,7 @@ A cd belső parancs
+ leírásánál.
+ .\"NODE "    Extension File Edit"
+ .SH "    Társítások"
+-Ez az ~/.mc/bindings szerkesztéséhez segítségül fogja hívni a
++Ez az ~/.config/mc/bindings szerkesztéséhez segítségül fogja hívni a
+ szövegszerkesztődet. A fájl formátuma a következő (a formátum a 3.0\-ás
+ verzióval megváltozott):
+ .PP
+@@ -1358,10 +1358,10 @@ linuxban futó background processzekre hatástalan.
+ .\"NODE "    Menu File Edit"
+ .SH "    Menü szerkesztés"
+ A felhasználói menüt a felhasználó testre szabhatja. Ez az aktulis
+-könyvtár .mc.menu fájlja, ha az létezik, de csak, ha az a felhasználó
++könyvtár .config/mc.menu fájlja, ha az létezik, de csak, ha az a felhasználó
+ (illetve a root) a tulajdonosa, és nem lehet bárki számára írható. Ha
+ nem talál ilyen fájlt, az
+-.I ~/.mc/menu
++.I ~/.config/mc/menu
+ keresése a következő lépés, egyébként pedig az mc az alapértelmezett
+ rendszerszintű menüt használja, pl.:
+ .IR @prefix@/share/mc/mc.menu ,
+@@ -1654,7 +1654,7 @@ engedélyezett, akkor a szokásos kiterjesztések azonosak a ed\-ben lévőkkel:
+ .PP
+ .I Beállítások automatikus mentése
+ Ha ez az opciót bekapcsoltad, amikor kilépsz a Midnight Commander\-ből,
+-az MC opcióinak beállításait az ~/.mc/ini fájlba menti.
++az MC opcióinak beállításait az ~/.config/mc/ini fájlba menti.
+ .PP
+ .I Auto menük.
+ Ha ez az opció engedélyezett, a felhasználói menü megjelenik az mc
+@@ -1808,7 +1808,7 @@ begépelt gomb lesz az megkérdezett gombbal azonosított. Ezután a
+ dialógus ablak eltűnik.
+ .PP
+ Amikor végeztél minden gombbal, ezt elmentheted a Mentés gombbal az
+-~/.mc/ini fájlba, a [terminal:TERM] részbe (ahol a TERM a jelenlegi
++~/.config/mc/ini fájlba, a [terminal:TERM] részbe (ahol a TERM a jelenlegi
+ terminál neve), vagy elvetheted. Ha minden gombod megfelelően működik,
+ és nem javítottál semmit, akkor (természetesen) nem fog menteni semmit
+ sem.
+@@ -1869,7 +1869,7 @@ FTP fájlrendszernél\&.
+ .SH "    Beállítások mentése"
+ A Midnight Commander indításkor megpróbálja az indítási információkat
+ beolvasni az
+-.I ~/.mc/ini
++.I ~/.config/mc/ini
+ fájlból. Ha ez a fájl nem létezik, ezeket az információkat a
+ rendszerszintű konfigurációs fájlból fogja beolvasni, amelyek a
+ .I @prefix@/share/mc/mc.ini
+@@ -1886,7 +1886,7 @@ Bal és Jobb oldali menü
+ .\"LINK2"
+ Beállítások
+ .\"Options Menu"
+-menü beállításait az ~/.mc/ini fájlba.
++menü beállításait az ~/.config/mc/ini fájlba.
+ .PP
+ Ha aktiválod az
+ .I Auto Beállításmentés
+@@ -2092,10 +2092,10 @@ használni fog.
+ .PP
+ Ha
+ .BR bash \-t
+-használsz, a subshell indító parancsait megadhatod az ~/.mc/bashrc
+-fájlban, és tetszőleges billentyűzet térképet az ~/.mc/inputrc fájlban. A
++használsz, a subshell indító parancsait megadhatod az ~/.config/mc/bashrc
++fájlban, és tetszőleges billentyűzet térképet az ~/.config/mc/inputrc fájlban. A
+ .B tcsh
+-felhasználóknak az indítási parancsokat az ~/.mc/tcshrc fájlban van
++felhasználóknak az indítási parancsokat az ~/.config/mc/tcshrc fájlban van
+ lehetőségük megadni.
+ .PP
+ Amikor a subshell kódot használod, bármikor megszakíthatod az
+@@ -2873,7 +2873,7 @@ base_color=normal=white,default:marked=magenta,default
+ A legtöbb Midnight Commander beállítás a menükből is elérhető. Ám van
+ néhány beállítás, ami csak a setup fájl szerkesztésével állítható be.
+ .PP
+-Ezeket a változókat az ~/.mc/ini fájlban állíthatod be:
++Ezeket a változókat az ~/.config/mc/ini fájlban állíthatod be:
+ .PP
+ .I clear_before_exec
+ .IP
+@@ -2981,7 +2981,7 @@ tartalommal.
+ A Midnight Commander lehetőséget nyújt a terminál adatbázis root jogok
+ használata nélküli módosítására. A Midnight Commander a rendszer indító
+ fájlban (az mc.lib fájlt a Midnight Commander library könyvtárában
+-találjuk), vagy az ~/.mc/ini file "terminal:your\-terminal\-name" részében
++találjuk), vagy az ~/.config/mc/ini file "terminal:your\-terminal\-name" részében
+ keres, és, a "terminal:general" rész minden sora tartalmazza azokat a
+ billentyűzet szimbólumokat az egyenlőségjelet és a definiált szimbólumot
+ követően, amelyeket te mag akarsz határozni. A \\e speciális formátumot
+@@ -3033,7 +3033,7 @@ A program súgó fájlja.
+ .IP
+ Az alapértelmezett rendszerszintű kiterjesztés fájl.
+ .PP
+-.I ~/.mc/bindings
++.I ~/.config/mc/bindings
+ .IP
+ A felhasználó saját kiterjesztései, nézet beállítások és szerkesztési
+ beállítások. Ezek felülbírálják a rendszerszintű fájl bejegyzéseit, ha
+@@ -3042,7 +3042,7 @@ van ilyen.
+ .I @prefix@/share/mc/mc.ini
+ .IP
+ Az alapértelmezett rendszerszintű Midnight Commander beállítás, amelyet
+-csak akkor használ, ha a felhasználónak nincs saját ~/.mc/ini fájlja.
++csak akkor használ, ha a felhasználónak nincs saját ~/.config/mc/ini fájlja.
+ .PP
+ .I @prefix@/share/mc/mc.lib
+ .IP
+@@ -3050,7 +3050,7 @@ A Midnight Commander globális beállításai. Az ebben a fájlban elvégzett
+ beállítások minden felhasználó Midnight Commander\-jére vonatkoznak, ez
+ használható a site\-globális terminál beállításaihoz.
+ .PP
+-.I ~/.mc/ini
++.I ~/.config/mc/ini
+ .IP
+ A felhasználó saját beállításai. Ha ez a fájl elérhető, akkor a
+ beállítások ebből a fájlból olvasódnak be a rendszerszintű indító fájl
+@@ -3065,24 +3065,24 @@ Ez a fájl tartalmazza a program által megjelenített útmutattásokat
+ .IP
+ Ez a fájl azonos a rendszerszintű alkalmazás menüvel.
+ .PP
+-.I ~/.mc/menu
++.I ~/.config/mc/menu
+ .IP
+ A falhasználó saját alkalmazás menüje. Ha ez a fájl elérhető a
+ rendszerszintű alkalmazás menü helyett ezt fogja használni.
+ .PP
+-.I ~/.mc/Tree
++.I ~/.config/mc/Tree
+ .IP
+ A könyvtárlista a Könyvtárfa és a Fa nézethez.  Minden sor egy
+ bejegyzés. Minden sor perjellel kezdik a teljes könyvtár neveknél. A
+ sorok egy számmal kezdődnek, amik azonosak az elöző könyvtáréval. Ha ezt
+ a fájlt el akarod készíteni a következő parancsot használd: 
+ .nf
+-find / \-type d \-print | sort > ~/.mc/Tree"
++find / \-type d \-print | sort > ~/.config/mc/Tree"
+ .fi
+ Normálisan nincs erre szükséged, mert a Midnight Commander automatikusan
+ frissíti ezt.
+ .PP
+-.I ./.mc.menu
++.I ./.config/mc.menu
+ .IP
+ Helyi felhasználó által definiált menü. Ha ez a fájl létezik, ezt
+ használja a home, vagy rendszerszintű alkalmazás menü helyett.
+diff --git a/doc/man/it/mc.1.in b/doc/man/it/mc.1.in
+index 04b6d13..fb94c1e 100644
+--- a/doc/man/it/mc.1.in
++++ b/doc/man/it/mc.1.in
+@@ -207,7 +207,7 @@ albero directory\&.
+ L'auto ripetizione predefinita per il mouse è di 400 millisecondi. Questo
+ valore può essere cambiato modificando il file
+ .\"LINK2"
+-\&~/.mc/ini
++\&~/.config/mc/ini
+ .\"Save Setup"
+ e cambiando il parametro
+ .IR mouse_repeat_rate .
+@@ -1239,7 +1239,7 @@ Le directory che devono essere saltate devono essere impostate nella variabile
+ .B ignore_dirs 
+ nella sezione
+ .B FindFile
+-del file ~/.mc/ini.
++del file ~/.config/mc/ini.
+ .PP
+ Le directory devono essere separate da una virgola, come nell'esempio:
+ .PP
+@@ -1304,7 +1304,7 @@ comando cd interno\&.
+ .\"NODE "    Extension File Edit"
+ .SH "    Modifica file estensioni"
+ Questo comando invocherà l'editor sul file 
+-.IR ~/.mc/bindings . 
++.IR ~/.config/mc/bindings . 
+ Il fomato di questo file è il seguente (il formato è cambiato dalla 
+ versione 3.0):
+ .PP
+@@ -1368,10 +1368,10 @@ far ripartire e uccidere un lavoro in background.
+ .SH "    Modifica file menu"
+ Il menu utente è un menu di comandi utili che possono essere 
+ personalizzati dall'utente. Quando si accede al menu utente, viene 
+-utilizzato, se esiste, il file .mc.menu dalla directory corrente,
++utilizzato, se esiste, il file .config/mc.menu dalla directory corrente,
+ ma solo se è di proprietà dell'utente o di root e se non è scrivibile
+ a tutti. Se tale file non viene trovato, mc alla stessa maniera 
+-prova con ~/.mc/menu altrimenti usa il menu di sistema
++prova con ~/.config/mc/menu altrimenti usa il menu di sistema
+ @prefix@/share/mc/mc.menu.
+ .PP
+ Il formato del file menu è molto semplice. Le righe che cominciano
+@@ -1656,7 +1656,7 @@ espressioni regolari sono quelle descritte in ed(1).
+ .I Autosalva configurazione.
+ Se quest'opzione è abilitata, quando si esce dal Midnight Commander le
+ opzioni configurabili del Midnight Commander vengono salvate nel file
+-~/.mc/ini.
++~/.config/mc/ini.
+ .PP
+ .I Menu automatici.
+ Se quest'opzione è abilitata, il menu utente sarà invocato alla partenza.
+@@ -1807,7 +1807,7 @@ premere Esc una volta ed aspettare.
+ .PP
+ Quando si è finito con tutti i tasti, è possibile salvarli. Le definizioni
+ dei tasti che si è ridefinito saranno scritte nella sezione [terminal:TERM]
+-del vostro ~/.mc/ini file (dove TERM è il nome del terminale corrente). Le
++del vostro ~/.config/mc/ini file (dove TERM è il nome del terminale corrente). Le
+ definizioni dei tasti che già funzionavano correttamente non vengono salvate.
+ .\"NODE "    Virtual FS"
+ .SH "    FS virtuale "
+@@ -1904,14 +1904,14 @@ funzionare con alcuni firewall.
+ .\"NODE "    Save Setup"
+ .SH "    Salva configurazione"
+ Alla partenza il Midnight Commander prova a caricare le informazioni di
+-inizializzazione dal file ~/.mc/ini. Se questo file non esiste, 
++inizializzazione dal file ~/.config/mc/ini. Se questo file non esiste, 
+ caricherà le informazioni dal file di configurazione di sistema 
+ posizionato in @prefix@/share/mc/mc.ini. Se il file di configurazione di 
+ sistema non esiste, MC userà le impostazioni predefinite.
+ .PP
+ Il comando
+ .I salva configurazione
+-crea il file ~/.mc/ini salvando le impostazioni correnti 
++crea il file ~/.config/mc/ini salvando le impostazioni correnti 
+ dei menu
+ .\"LINK2"
+ sinistra, destra
+@@ -2113,11 +2113,11 @@ esca dal Midnight Commander.
+ Se si sta usando
+ .B bash
+ si può specificare comandi alla partenza della subshell nel file
+-~/.mc/bashrc e mappature speciali della tastiera nel file
+-~/.mc/inputrc.
++~/.config/mc/bashrc e mappature speciali della tastiera nel file
++~/.config/mc/inputrc.
+ .B tcsh 
+ gli utenti possono specificare comandi alla partenza nel file
+-~/.mc/tcshrc.
++~/.config/mc/tcshrc.
+ .PP
+ Quando il codice della subshell viene utilizzato, si può sospendere
+ l'applicazione in ogni momento con la sequenza C\-o e saltare nuovamente
+@@ -2520,7 +2520,7 @@ e poi il tasto assegnato. La macro viene eseguita anche se si
+ preme il tasto Meta, Ctrl, o Esc e il tasto assegnato, basta che il tasto
+ non sia già assegnato a qualche altra funzione. Una volta definiti, i
+ macro comandi finiscono nel file
+-.B .mc/cedit/cooledit.macros
++.B .config/mc/cedit/cooledit.macros
+ nella propria directory home. E' possibile cancellare una macro cancellando
+ la riga appropriata nel suddetto file.
+ .PP
+@@ -2532,7 +2532,7 @@ o
+ o altro). Questo comportamento viene controllato dal file 
+ .B @prefix@/share/mc/edit.indent.rc
+ che viene copiato nel 
+-.B .mc/cedit/edit.indent.rc
++.B .config/mc/cedit/edit.indent.rc
+ nella propria directory home la prima volta che lo si usa.
+ .PP
+ L'editor visualizza snche caratteri non\-americani (160+). Quando si modifica
+@@ -2910,13 +2910,13 @@ Molte delle impostazioni del Midnight Commander possono essere cambiate
+ dai menu. Comunque, c'è un piccolo numero di impostazioni che possono
+ essere cambiate solo agendo sul file di configurazione.
+ .PP
+-Queste sono le variabili che possono essere impostate nel file ~/.mc/ini:
++Queste sono le variabili che possono essere impostate nel file ~/.config/mc/ini:
+ .TP
+ .I clear_before_exec
+ Il valore predefinito del Midnight Commander è di cancellare lo schermo
+ prima dell'esecuzione di un comando. Se si preferisce vedere il risultato
+ di un comando in fondo allo schermo, si modifichi la copia locale del file
+-~/.mc/ini e si cambi il valore del campo clear_before_exec a 0.
++~/.config/mc/ini e si cambi il valore del campo clear_before_exec a 0.
+ .TP
+ .I confirm_view_dir
+ Se si preme F3 su di una directory, normalmente MC entra nella directory.
+@@ -3005,7 +3005,7 @@ Il Midnight Commander fornisce una maniera per correggere il database
+ dei terminali si sistema senza richiedere i privilegi di 
+ amministratore (root). Il Midnight Commander ricerca nel file di
+ inizializzazione di sistema (il file mc.lib collocato nella directory
+-di libreria del Midnight Commander) e nel file ~/.mc/ini la sezione
++di libreria del Midnight Commander) e nel file ~/.config/mc/ini la sezione
+ "terminal:nome\-del\-terminale\-in\-uso" e poi la sezione "terminal:general",
+ ogni riga della sezione contiene il simbolo chiave che si vuol definire,
+ seguito da un segno di uguale e la definizione per quel tasto.
+@@ -3058,7 +3058,7 @@ Il file di aiuto per il programma.
+ .IP
+ Il file delle estensioni di sistema predefinito.
+ .PP
+-.I ~/.mc/bindings
++.I ~/.config/mc/bindings
+ .IP
+ Le estensioni dell'utente, la configurazione del visualizzatore e
+ dell'editor di file. Se presenti, questi file si sovrappongono ai file di 
+@@ -3067,19 +3067,19 @@ sistema.
+ .I @prefix@/share/mc/mc.ini
+ .IP
+ La configurazione di sistema predefinita per il Midnight Commander, usata solo
+-se l'utente non possiede il proprio file ~/.mc/ini.
++se l'utente non possiede il proprio file ~/.config/mc/ini.
+ .PP
+ .I @prefix@/share/mc/mc.lib
+ .IP
+ Le impostazioni globali per il Midnight Commander. La modifica di questo
+-file influisce su tutti gli utenti, che abbiano o no il file ~/.mc/ini .
++file influisce su tutti gli utenti, che abbiano o no il file ~/.config/mc/ini .
+ Attualmente vengono caricate solo le
+ .\"LINK2"
+ impostazioni del terminale
+ .\"Terminal databases"
+ da mc.lib.
+ .PP
+-.I ~/.mc/ini
++.I ~/.config/mc/ini
+ .IP
+ La configurazione dell'utente. Se questo file è presente, la configurazione
+ viene caricata da qui invece che dal file di sistema.
+@@ -3092,16 +3092,16 @@ Questo file contiene i suggerimenti (dritte) mostrate dal programma.
+ .IP
+ Questo file contiene il menu di sistema per le applicazioni.
+ .PP
+-.I ~/.mc/menu
++.I ~/.config/mc/menu
+ .IP
+ Il menu utente per le applicazioni. Se presente viene usato al posto
+ del menu delle applicazioni di sistema.
+ .PP
+-.I ~/.mc/Tree
++.I ~/.config/mc/Tree
+ .IP
+ L'elenco di directory per l'albero directory e per la vista ad albero.
+ .PP
+-.I ./.mc.menu
++.I ./.config/mc.menu
+ .IP
+ Menu locale definito dall'utente. Se questo file è presente viene usato
+ al posto del menu delle applicazioni utente o di sistema.
+diff --git a/doc/man/mc.1.in b/doc/man/mc.1.in
+index 5ff2428..2878ab2 100644
+--- a/doc/man/mc.1.in
++++ b/doc/man/mc.1.in
+@@ -226,7 +226,7 @@ key labels by clicking on them.
+ The default auto repeat rate for the mouse buttons is 400
+ milliseconds. This may be changed to other values by editing the
+ .\"LINK2"
+-\&~/.mc/ini
++\&~/.config/mc/ini
+ .\"Save Setup"
+ file and changing the
+ .I mouse_repeat_rate
+@@ -326,7 +326,7 @@ in section
+ .BR [Midnight\-Commander]
+ .BR
+ 4) File
+-.BR ~/.mc/mc.keymap
++.BR ~/.config/mc/mc.keymap
+ .BR
+ 5) File
+ .BR @sysconfdir@/mc/mc.keymap
+@@ -339,7 +339,7 @@ contain the absolute path to the keymap\-file (with the extension \.keymap
+ or without it). Search of keymap\-file will occur in (to the first one found):
+ .IP
+ 1)
+-.BR ~/.mc/
++.BR ~/.config/mc/
+ .BR
+ 2)
+ .BR @sysconfdir@/mc/
+@@ -1398,7 +1398,7 @@ Directories to be skipped should be set on the variable
+ .B ignore_dirs
+ in the
+ .B FindFile
+-section of your ~/.mc/ini file.
++section of your ~/.config/mc/ini file.
+ .PP
+ Directory components should be separated with a colon, here is an
+ example:
+@@ -1464,7 +1464,7 @@ description.
+ .\"NODE "    Extension File Edit"
+ .SH "    Extension File Edit"
+ This will invoke your editor on the file
+-.IR ~/.mc/bindings .
++.IR ~/.config/mc/bindings .
+ The format of this file following:
+ .PP
+ All lines starting with # or empty lines are thrown away.
+@@ -1555,9 +1555,9 @@ here.
+ .SH "    Menu File Edit"
+ The user menu is a menu of useful actions that can be customized by
+ the user. When you access the user menu, the
+-file .mc.menu from the current directory is used if it exists,
++file .config/mc.menu from the current directory is used if it exists,
+ but only if it is owned by user or root and is not world\-writable.
+-If no such file found, ~/.mc/menu is tried in the same way,
++If no such file found, ~/.config/mc/menu is tried in the same way,
+ and otherwise mc uses the default system\-wide menu
+ @prefix@/share/mc/mc.menu.
+ .PP
+@@ -1908,7 +1908,7 @@ This option is disabled by default.
+ .I Auto save setup.
+ If this option is enabled, when you exit the Midnight Commander the
+ configurable options of the Midnight Commander are saved in the
+-~/.mc/ini file.
++~/.config/mc/ini file.
+ .\"NODE "    Layout"
+ .SH "    Layout"
+ The layout dialog gives you a possibility to change the general layout
+@@ -2016,7 +2016,7 @@ format and sort options. Unchecked by default.
+ .PP
+ .I Auto save panels setup.
+ If this option is enabled, when you exit the Midnight Commander the
+-current settings of panels are saved in the ~/.mc/panels.ini file.
++current settings of panels are saved in the ~/.config/mc/panels.ini file.
+ Disabled by default.
+ .PP
+ .B Navigation
+@@ -2110,7 +2110,7 @@ and wait.
+ .PP
+ When you finish with all the keys, you can Save them.  The definitions
+ for the keys you have redefined will be written into the [terminal:TERM]
+-section of your ~/.mc/ini file (where TERM is the name of your current
++section of your ~/.config/mc/ini file (where TERM is the name of your current
+ terminal).  The definitions of the keys that were already working properly
+ are not saved.
+ .\"NODE "    Virtual FS"
+@@ -2202,14 +2202,14 @@ firewalls.
+ .\"NODE "    Save Setup"
+ .SH "    Save Setup"
+ At startup the Midnight Commander will try to load initialization
+-information from the ~/.mc/ini file. If this file doesn't exist, it will
++information from the ~/.config/mc/ini file. If this file doesn't exist, it will
+ load the information from the system\-wide configuration file, located in
+ @prefix@/share/mc/mc.ini. If the system\-wide configuration file doesn't
+ exist, MC uses the default settings.
+ .PP
+ The
+ .I Save Setup
+-command creates the ~/.mc/ini file by saving the current settings
++command creates the ~/.config/mc/ini file by saving the current settings
+ of the
+ .\"LINK2"
+ Left, Right
+@@ -2410,10 +2410,10 @@ valid until you quit the Midnight Commander.
+ If you are using
+ .B bash
+ you can specify startup
+-commands for the subshell in your ~/.mc/bashrc file and
+-special keyboard maps in the ~/.mc/inputrc file.
++commands for the subshell in your ~/.config/mc/bashrc file and
++special keyboard maps in the ~/.config/mc/inputrc file.
+ .B tcsh
+-users may specify startup commands in the ~/.mc/tcshrc file.
++users may specify startup commands in the ~/.config/mc/tcshrc file.
+ .PP
+ When the subshell code is used, you can suspend applications at any
+ time with the sequence C\-o and jump back to the Midnight Commander, if
+@@ -2958,7 +2958,7 @@ and then the assigned key. The macro is also executed if
+ you press Meta, Ctrl, or Esc and the assigned key, provided that the
+ key is not used for any other function. Once defined, the macro
+ commands go into the file
+-.B .mc/cedit/cooledit.macros
++.B .config/mc/cedit/cooledit.macros
+ in your home directory. You can delete a macro by deleting the
+ appropriate line in this file.
+ .PP
+@@ -2976,7 +2976,7 @@ code or another). This is controlled by the
+ file
+ .B @prefix@/share/mc/edit.indent.rc
+ which is copied to
+-.B .mc/cedit/edit.indent.rc
++.B .config/mc/cedit/edit.indent.rc
+ in your home directory the first time you use it.
+ .PP
+ The editor also displays non\-us characters (160+). When editing
+@@ -3536,7 +3536,7 @@ contain the absolute path to the skin\-file (with the extension \.ini
+ or without it). Search of skin\-file will occur in (to the first one found):
+ .IP
+ 1)
+-.B ~/.mc/skins/
++.B ~/.config/mc/skins/
+ .br
+ 2)
+ .B @sysconfdir@/mc/skins/
+@@ -3843,7 +3843,7 @@ Skins
+ section.
+ .PP
+ Rules of filenames highlight are placed in @prefix@/share/mc/filehighlight.ini file
+-(~/.mc/filehighlight.ini).
++(~/.config/mc/filehighlight.ini).
+ Name of section in this file must be equal to parameters names in
+ [filehighlight] section (in current skin\-file).
+ .PP
+@@ -3888,12 +3888,12 @@ Most of the Midnight Commander settings can be changed from the
+ menus. However, there are a small number of settings which can only be
+ changed by editing the setup file.
+ .PP
+-These variables may be set in your ~/.mc/ini file:
++These variables may be set in your ~/.config/mc/ini file:
+ .TP
+ .I clear_before_exec
+ By default the Midnight Commander clears the screen before executing a
+ command.  If you would prefer to see the output of the command at the
+-bottom of the screen, edit your ~/.mc/ini file and change the value of
++bottom of the screen, edit your ~/.config/mc/ini file and change the value of
+ the field clear_before_exec to 0.
+ .TP
+ .I confirm_view_dir
+@@ -4010,7 +4010,7 @@ autodetect_codeset=russian
+ The Midnight Commander provides a way to fix your system terminal
+ database without requiring root privileges.  The Midnight Commander
+ searches in the system initialization file (the mc.lib file located in
+-the Midnight Commander library directory) and in the ~/.mc/ini file for
++the Midnight Commander library directory) and in the ~/.config/mc/ini file for
+ the section "terminal:your\-terminal\-name" and then for the section
+ "terminal:general", each line of the section contains a key symbol that
+ you want to define, followed by an equal sign and the definition for the
+@@ -4078,7 +4078,7 @@ The help file for the program.
+ .IP
+ The default system\-wide extensions file.
+ .PP
+-.I ~/.mc/bindings
++.I ~/.config/mc/bindings
+ .IP
+ User's own extension, view configuration and edit configuration
+ file.  They override the contents of the system wide files if present.
+@@ -4086,18 +4086,18 @@ file.  They override the contents of the system wide files if present.
+ .I @prefix@/share/mc/mc.ini
+ .IP
+ The default system\-wide setup for the Midnight Commander, used only if
+-the user doesn't have his own ~/.mc/ini file.
++the user doesn't have his own ~/.config/mc/ini file.
+ .PP
+ .I @prefix@/share/mc/mc.lib
+ .IP
+ Global settings for the Midnight Commander.  Settings in this file
+-affect all users, whether they have ~/.mc/ini or not.  Currently, only
++affect all users, whether they have ~/.config/mc/ini or not.  Currently, only
+ .\"LINK2"
+ terminal settings
+ .\"Terminal databases"
+ are loaded from mc.lib.
+ .PP
+-.I ~/.mc/ini
++.I ~/.config/mc/ini
+ .IP
+ User's own setup. If this file is present then the setup is loaded
+ from here instead of the system\-wide startup file.
+@@ -4110,16 +4110,16 @@ This file contains the hints displayed by the program.
+ .IP
+ This file contains the default system\-wide applications menu.
+ .PP
+-.I ~/.mc/menu
++.I ~/.config/mc/menu
+ .IP
+ User's own application menu. If this file is present it is used instead
+ of the system\-wide applications menu.
+ .PP
+-.I ~/.mc/Tree
++.I ~/.config/mc/Tree
+ .IP
+ The directory list for the directory tree and tree view features.
+ .PP
+-.I ./.mc.menu
++.I ./.config/mc.menu
+ .IP
+ Local user\-defined menu. If this file is present, it is used instead of
+ the home or system\-wide applications menu.
+diff --git a/doc/man/mcedit.1.in b/doc/man/mcedit.1.in
+index 5f03998..6d5c41e 100644
+--- a/doc/man/mcedit.1.in
++++ b/doc/man/mcedit.1.in
+@@ -76,13 +76,13 @@ In addition to that, Shift combined with arrows does text highlighting
+ (if supported by the terminal):
+ .B Ctrl\-Ins
+ copies to the file
+-.BR ~/.mc/cedit/cooledit.clip ,
++.BR ~/.config/mc/cedit/cooledit.clip ,
+ .B Shift\-Ins
+ pastes from
+-.BR ~/.mc/cedit/cooledit.clip ,
++.BR ~/.config/mc/cedit/cooledit.clip ,
+ .B Shift\-Del
+ cuts to
+-.BR ~/.mc/cedit/cooledit.clip ,
++.BR ~/.config/mc/cedit/cooledit.clip ,
+ and
+ .B Ctrl\-Del
+ deletes highlighted text.  Mouse highlighting also works on some
+@@ -108,7 +108,7 @@ by pressing that key.  The macro is executed when you press
+ and then the assigned key.  The macro is also executed if you press
+ Meta, Ctrl, or Esc and the assigned key, provided that the key is not
+ used for any other function.  The macro commands are stored in the file
+-.BR ~/.mc/cedit/cooledit.macros .
++.BR ~/.config/mc/cedit/cooledit.macros .
+ Do NOT edit this file if you are going to use macros again in the same
+ editing session, because
+ .B mcedit
+@@ -121,14 +121,14 @@ other running editors for macros to take effect.
+ .B F19
+ will format C, C++, Java or HTML code when it is highlighted.  An executable
+ file called
+-.B ~/.mc/cedit/edit.indent.rc
++.B ~/.config/mc/cedit/edit.indent.rc
+ will be created for you from the default template.  Feel free to edit it
+ if you need.
+ .PP
+ .B C\-p
+ will run ispell on a block of text in a similar way.  The script file
+ will be called
+-.BR ~/.mc/cedit/edit.spell.rc .
++.BR ~/.config/mc/cedit/edit.spell.rc .
+ .PP
+ If some keys don't work, you can use
+ .B Learn Keys
+@@ -160,12 +160,12 @@ Forward).
+ supports syntax highlighting.  This means that keywords and contexts
+ (like C comments, string constants, etc) are highlighted in different
+ colors.  The following section explains the format of the file
+-.BR ~/.mc/cedit/Syntax .
++.BR ~/.config/mc/cedit/Syntax .
+ If this file is missing, system\-wide
+ .B @prefix@/share/mc/syntax/Syntax
+ is used.
+ The file
+-.B ~/.mc/cedit/Syntax
++.B ~/.config/mc/cedit/Syntax
+ is rescanned on opening of a any new editor file.  The file contains
+ rules for highlighting, each of which is given on a separate line, and
+ define which keywords will be highlighted to what color.
+@@ -388,7 +388,7 @@ Most options can now be set from the editors options dialog box.  See
+ the
+ .B Options
+ menu.  The following options are defined in
+-.B ~/.mc/ini
++.B ~/.config/mc/ini
+ and have obvious counterparts in the dialog box.  You can modify them to
+ change the editor behavior, by editing the file.  Unless specified, a 1
+ sets the option to on, and a 0 sets it to off, as is usual.
+@@ -535,24 +535,24 @@ The help file for the program.
+ .I @prefix@/share/mc/mc.ini
+ .IP
+ The default system\-wide setup for GNU Midnight Commander, used only if
+-the user's own ~/.mc/ini file is missing.
++the user's own ~/.config/mc/ini file is missing.
+ .PP
+ .I @prefix@/share/mc/mc.lib
+ .IP
+ Global settings for the Midnight Commander.  Settings in this file
+-affect all users, whether they have ~/.mc/ini or not.
++affect all users, whether they have ~/.config/mc/ini or not.
+ .PP
+ .I @prefix@/share/mc/syntax/*
+ .IP
+ The default system\-wide syntax files for mcedit, used only if
+-the corresponding user's own ~/.mc/cedit/ file is missing.
++the corresponding user's own ~/.config/mc/cedit/ file is missing.
+ .PP
+-.I $HOME/.mc/ini
++.I $HOME/.config/mc/ini
+ .IP
+ User's own setup.  If this file is present then the setup is loaded
+ from here instead of the system\-wide setup file.
+ .PP
+-.I $HOME/.mc/cedit/
++.I $HOME/.config/mc/cedit/
+ .IP
+ User's own directory where block commands are processed and saved and
+ user's own syntax files are located.
+diff --git a/doc/man/mcview.1.in b/doc/man/mcview.1.in
+index 13a34f1..d960150 100644
+--- a/doc/man/mcview.1.in
++++ b/doc/man/mcview.1.in
+@@ -68,14 +68,14 @@ The help file for the program.
+ .I @prefix@/share/mc/mc.ini
+ .IP
+ The default system\-wide setup for GNU Midnight Commander, used only if
+-the user's own ~/.mc/ini file is missing.
++the user's own ~/.config/mc/ini file is missing.
+ .PP
+ .I @prefix@/share/mc/mc.lib
+ .IP
+ Global settings for the Midnight Commander.  Settings in this file
+-affect all users, whether they have ~/.mc/ini or not.
++affect all users, whether they have ~/.config/mc/ini or not.
+ .PP
+-.I $HOME/.mc/ini
++.I $HOME/.config/mc/ini
+ .IP
+ User's own setup.  If this file is present, the setup is loaded from
+ here instead of the system\-wide startup file.
+diff --git a/doc/man/pl/mc.1.in b/doc/man/pl/mc.1.in
+index 266a36f..23966a6 100644
+--- a/doc/man/pl/mc.1.in
++++ b/doc/man/pl/mc.1.in
+@@ -162,7 +162,7 @@ przeglądaniu pomocy i przy drzewie katalogów.
+ .PP
+ Standardowo czas autopowtórzenia przy klikaniu myszą wynosi 400 milisekund.
+ Tę wartość można zmienić edytując plik
+-\&~/.mc/ini
++\&~/.config/mc/ini
+ i zmieniając parametr
+ .IR mouse_repeat_rate .
+ .PP
+@@ -1024,7 +1024,7 @@ Katalogi do omijania powinny być umieszczone w zmiennej
+ .B ignore_dirs
+ w sekcji
+ .B FindFile
+-twojego pliku ~/.mc/ini.
++twojego pliku ~/.config/mc/ini.
+ .PP
+ Składowe katalogów powinny być oddzielone od siebie przez średniki, to jest
+ przykład:
+@@ -1085,7 +1085,7 @@ przemieszczanie.
+ .PP
+ .\"NODE "    Extension File Edit"
+ .SH "    Edycja rozszerzeń pliów (Extension File Edit)"
+-Ta komenda wywoła twój edytor na plik ~/.mc/bindings. Format tego pliku jest
++Ta komenda wywoła twój edytor na plik ~/.config/mc/bindings. Format tego pliku jest
+ następujący (zmienił się on począwszy od wersji 3.0):
+ .PP
+ Wszystkie linie zaczynające się od #, lub puste, nie są brane pod uwagę.
+@@ -1156,9 +1156,9 @@ proces w tle.
+ .SH "    Edycja menu użytkownika (Menu File Edit)"
+ Menu użytkownika jest bardzo użytecznym menu, które może być tworzone
+ w sposób dowolny, przez użytkownika. Kiedy tylko próbujesz coś zrobić
+-przy użyciu tego menu, ładowany jest plik .mc.menu z aktualnego katalogu, ale
++przy użyciu tego menu, ładowany jest plik .config/mc.menu z aktualnego katalogu, ale
+ tylko wtedy kiedy jest on w posiadaniu użytkownika lub roota i mamy do niego
+-prawa zapisu. Jeśli takiego nie ma próbuje się z plikiem ~/.mc/menu z tymi
++prawa zapisu. Jeśli takiego nie ma próbuje się z plikiem ~/.config/mc/menu z tymi
+ samymi założeniami, jeśli jego też nie ma \- używa się standardowego pliku
+ systemowego, który znajduje się w @prefix@/share/mc/mc.menu.
+ .PP
+@@ -1412,7 +1412,7 @@ te, których używa w komenda
+ .I Auto Save Setup.
+ Jeśli ta opcja jest włączona, kiedy wychodzisz z Midnight Commandera
+ konfiguracja MC zostanie zachowana automatycznie (bez pytania)
+-do pliku ~/.mc/ini.
++do pliku ~/.config/mc/ini.
+ .PP
+ .I Auto menus.
+ Jeśli ta opcja jest włączona, menu użytkownika będzie włączone na starcie.
+@@ -1544,7 +1544,7 @@ wiadomość zniknie. W przeciwnym wypadku wciśnij klawisz, który sobie życzys
+ i również poczekaj na zniknięcie okna.
+ .PP
+ Kiedy skończysz już ze wszystkimi klawiszami, możesz nacisnąć Save
+-żeby zachować zmiany do pliku ~/.mc/ini do sekcji [terminal:TERM] (gdzie
++żeby zachować zmiany do pliku ~/.config/mc/ini do sekcji [terminal:TERM] (gdzie
+ TERM jest nazwą twojego aktualnego terminala) lub po prostu odrzucić je.
+ .PP
+ .\"NODE "    Virtual FS"
+@@ -1597,13 +1597,13 @@ System plików FTP (FTP File System) po więcej szczegółów.
+ .\"NODE "    Save Setup"
+ .SH "    Zapisz ustawienia (Save Setup)"
+ Na starcie Midnight Commander będzie próbował odczytać opcje startowe
+-z pliku ~/.mc/ini. Jeśli on nie istnieje, odczyta on konfiguracje z
++z pliku ~/.config/mc/ini. Jeśli on nie istnieje, odczyta on konfiguracje z
+ ogólnodostępnego pliku @prefix@/share/mc/mc.ini. Jeśli on też nie istnieje MC
+ użyje swoich domyślnych ustawień.
+ .PP
+ Komenda
+ .I Save Setup
+-tworzy plik ~/.mc/ini zachowując aktualne ustawienia lewego, prawego menu,
++tworzy plik ~/.config/mc/ini zachowując aktualne ustawienia lewego, prawego menu,
+ jak również menu opcji.
+ .PP
+ Jeśli właczysz opcję
+@@ -1758,11 +1758,11 @@ z Midnight Commandera.
+ .PP
+ Jeśli używasz
+ .B basha
+-możesz wybrać startowe komendy twojej powłoki w tle w pliku ~/.mc/bashrc,
+-a ustawienia klawiatury w ~/.mc/inputrc.
++możesz wybrać startowe komendy twojej powłoki w tle w pliku ~/.config/mc/bashrc,
++a ustawienia klawiatury w ~/.config/mc/inputrc.
+ Użytkownicy
+ .B tcsh
+-mogą wstawiać komendy startowe do pliku ~/.mc/tcshrc.
++mogą wstawiać komendy startowe do pliku ~/.config/mc/tcshrc.
+ .PP
+ Jeśli kod powłoki w tle jest użyty, możesz zawiesić aplikację w dowolnej chwili
+ po prostu naciskając kombinację C\-o i przeskakując spowrotem do Midnight
+@@ -2135,20 +2135,20 @@ i przyporządkowany klawisz. Makro jest wykonywane również jeśli naciśniesz
+ klawisz Meta, Ctrl, lub Esc i wybrany klawisz, jednak tylko jeśli ten
+ klawisz nie jest używane przez inne funkcje. Raz zdefiniowane, makro
+ wędruje sobie do pliku
+-.B .mc/cedit/cooledit.macros
++.B .config/mc/cedit/cooledit.macros
+ w twoim katalogu domowym. Możesz skasować makro kasując odpowiednią linię z
+ tego pliku.
+ .PP
+ .B F19
+ sformatuje format C jeśli jest podświetlony. Żeby to działało, stwórz
+ wykonywalny plik
+-.B .mc/cedit/edit.indent.rc
++.B .config/mc/cedit/edit.indent.rc
+ w twoim katalogu domowym zawierający poniższe:
+ .PP
+ .nf
+ #!/bin/sh
+-/usr/bin/indent \-kr \-pcs $HOME/.mc/cedit/cooledit.block >& /dev/null
+-cat /dev/null > $HOME/.mc/cedit/cooledit.error
++/usr/bin/indent \-kr \-pcs $HOME/.config/mc/cedit/cooledit.block >& /dev/null
++cat /dev/null > $HOME/.config/mc/cedit/cooledit.error
+ .fi
+ .PP
+ Edytor wyświetla również znaki nieamerykańskie (160+). Kiedy edytujesz plik
+@@ -2529,7 +2529,7 @@ Większość ustawień Midnight Commandera może być zmieniana z poziomu menu.
+ Pomimo tego jest pewna ilość ustawień, których zmiana możliwa jest jedynie
+ poprzez zmianę w plikach konfiguracyjnych.
+ .PP
+-Opcje mogą być ustawione w twoim pliku ~/.mc/ini :
++Opcje mogą być ustawione w twoim pliku ~/.config/mc/ini :
+ .PP
+ .I clear_before_exec.
+ .IP
+@@ -2680,7 +2680,7 @@ zawartość wybranego katalogu.
+ Midnight Commander pozwala ci na naprawienie bazy danych terminali bez
+ posiadania uprawnień roota. Midnight Commander szuka w pliku startowym
+ (mc.lib położonego w katalogach z bibliotekami Midnight Commandera) lub w
+-pliku ~/.mc/ini sekcji "terminal:nazwa\-twojego\-terminala" i potem sekcji
++pliku ~/.config/mc/ini sekcji "terminal:nazwa\-twojego\-terminala" i potem sekcji
+ "terminal:general", każda linia sekcji zawiera symbol klawisza, który
+ chcesz zdefiniować, zaczynające się do znaku równości i definicji klawisza.
+ Możesz użyć kombinacji \\E aby reprezentować znak escape i ^x aby
+@@ -2733,7 +2733,7 @@ Plik pomocy dla programu.
+ .IP
+ Standardowy plik rozszerzeń plików.
+ .PP
+-~/.mc/bindings
++~/.config/mc/bindings
+ .IP
+ Własny plik użytkownika, konfiguruje podgląd i edycje plików. Ma wyższy
+ priorytet niż plik systemowy.
+@@ -2741,7 +2741,7 @@ priorytet niż plik systemowy.
+ @prefix@/share/mc/mc.ini
+ .IP
+ Standardowy plik setupu do Midnight Commandera, używany tylko wówczas,
+-kiedy użytkownik nie ma swojego własnego pliku ~/.mc/ini.
++kiedy użytkownik nie ma swojego własnego pliku ~/.config/mc/ini.
+ .PP
+ @prefix@/share/mc/mc.lib
+ .IP
+@@ -2749,7 +2749,7 @@ Globalne ustawienia Midnight Commandera. Ustawienia w tym pliku są
+ uwzględniane przez wszystkie sesje Midnight Commandera, użyteczne do
+ definiowania ogólnosystemowych ustawień terminali.
+ .PP
+-~/.mc/ini
++~/.config/mc/ini
+ .IP
+ Własny setup użytkownika. Jeśli ten plik jest dostępny, jest ładowany
+ zamiast pliku globalnego.
+@@ -2762,21 +2762,21 @@ Plik zawierający podpowiedzi (hints) wyświetlane przez program.
+ .IP
+ Ten plik zawiera informacje o ogólnosystemowych aplikacjach w menu.
+ .PP
+-~/.mc/menu
++~/.config/mc/menu
+ .IP
+ Własny plik menu użytkownika. Jeśli ten plik jest obecny jest używany
+ zamiast pliku globalnego.
+ .PP
+-~/.mc/tree
++~/.config/mc/tree
+ .IP
+ Lista katalogów drzewa katalogów i podglądu drzewa. Jedna linia jest jednym
+ wejściem. Linie zaczynające się od ukośnika są pełnymi nazwami katalogów.
+ Linie zaczynające się od numeru mają tyle znaków ile poprzedni katalog.
+ Jeśli chcesz możesz stworzyć plik używając komendy "find / \-type d
+-\-print | sort > ~/.mc/tree". Normalnie nie ma sensu tego czynić, gdyż
++\-print | sort > ~/.config/mc/tree". Normalnie nie ma sensu tego czynić, gdyż
+ Midnight Commander robi to sam za ciebie.
+ .PP
+-\&./.mc.menu
++\&./.config/mc.menu
+ .IP
+ Lokalny plik zdefiniowany przez użytkownika. Jeśli ten plik jest dostępny,
+ jest używany zamiast pliku w katalogu domowym i ogólnosystemowego.
+@@ -2788,7 +2788,7 @@ dopóki jako publikowany przez Free Software Foundation. Zobacz wbudowaną
+ pomoc po więcej szczegółów na temat licencji i braku gwarancji.
+ .\"NODE "AVAILABILITY"
+ .SH DOSTĘPNOŚĆ
+-Najnowsza wersja programu jest do zdobycia na serwerze ftp.nuclecu.unam.mc w
++Najnowsza wersja programu jest do zdobycia na serwerze ftp.nuclecu.unam.config/mc w
+ katalogu /linux/local i w Europie na serwerze sunsite.mff.cuni.cz w katalogu
+ /GNU/mc i na serwerze ftp.teuto.de w katalogu /lmb/mc.
+ .\"NODE "SEE ALSO"
+diff --git a/doc/man/ru/mc.1.in b/doc/man/ru/mc.1.in
+index 4d491c6..92483ce 100644
+--- a/doc/man/ru/mc.1.in
++++ b/doc/man/ru/mc.1.in
+@@ -220,7 +220,7 @@ Commander, просто набрав имя этой команды (прогр
+ .I mouse_repeat_rate
+ в файле
+ .\"LINK2"
+-\&~/.mc/ini
++\&~/.config/mc/ini
+ .\"Save Setup"
+ .PP
+ Если Commander запущен с поддержкой мыши, вы можете обойти Commander и
+@@ -322,7 +322,7 @@ S\-<символ> означает, что нужно держать в нажа
+ .BR [Midnight\-Commander]
+ .br
+ 4) Файл
+-.BR ~/.mc/mc.keymap
++.BR ~/.config/mc/mc.keymap
+ .br
+ 5) Файл
+ .BR @sysconfdir@/mc/mc.keymap
+@@ -337,7 +337,7 @@ S\-<символ> означает, что нужно держать в нажа
+ будет происходить по следующим каталогам (до первого нахождения):
+ .IP
+ 1)
+-.BR ~/.mc/
++.BR ~/.config/mc/
+ .br
+ 2)
+ .BR @sysconfdir@/mc/
+@@ -1496,7 +1496,7 @@ CDROM или не хотите искать в каталогах, подклю
+ в секции
+ .B FindFile
+ вашего файла
+-.BR ~/.mc/ini .
++.BR ~/.config/mc/ini .
+ Имена каталогов разделяются двоеточиями, следующим образом:
+ .PP
+ .nf
+@@ -1567,7 +1567,7 @@ CDPATH (смотрите описание
+ .SH "    Файл расширений"
+ Этот пункт меню "Команда" служит для вызова редактора и редактирования
+ файла
+-.BR ~/.mc/bindings .
++.BR ~/.config/mc/bindings .
+ Этот файл имеет следующий формат (формат был изменен в версии 3.0):
+ .PP
+ Все строки, начинающиеся с # или пустые строки игнорируются.
+@@ -1654,12 +1654,12 @@ View из второй секции. default должно описывать в
+ пользователями. Могут быть созданы три файла меню: в текущем каталоге, в
+ домашнем каталоге пользователя и общесистемный. Когда вы нажимаете
+ клавишу F2 для вызова меню, Midnight Commander вначале ищет файл
+-.B .mc.menu
++.B .config/mc.menu
+ в текущем каталоге и отображает соответствующее меню (если находит и
+ если владельцем этого файла является данный пользователь или root и этот
+ файл не доступен на запись всем). Если такого файла не найдено, таким же
+ образом ищется файл
+-.B ~/.mc/menu
++.B ~/.config/mc/menu
+ и, в последнюю очередь, mc использует общесистемное меню
+ .BR @prefix@/share/mc/mc.menu .
+ .PP
+@@ -2054,7 +2054,7 @@ like regular expressions). Для того, чтобы достичь таког
+ .I Автосохранение настроек.
+ Если эта опция включена, то при выходе из программы Midnight Commander
+ значения всех настраиваемых параметров сохраняются в файле
+-.BR ~/.mc/ini .
++.BR ~/.config/mc/ini .
+ .\"NODE "    Layout"
+ .SH "    Внешний вид"
+ Диалоговое окно "Внешний вид" дает вам возможность изменить некоторые
+@@ -2167,7 +2167,7 @@ Commander будет использовать для вывода содержи
+ .I Автосохранение настроек панелей.
+ Если опция включена (по умолчанию она выключена), то при выходе из
+ Midnight Commander'а текущие настройки панелей соханяются в файле
+-~/.mc/panels.ini.
++~/.config/mc/panels.ini.
+ .PP
+ .B Навигация
+ .PP
+@@ -2299,7 +2299,7 @@ Commander, выделены цветом, определенным ключев
+ .PP
+ Когда закончите тестирование и настройку всех клавиш, вы можете
+ сохранить эти настройки в секции [terminal:TERM] вашего файла
+-.B ~/.mc/ini
++.B ~/.config/mc/ini
+ (где TERM \- название используемого терминала) либо отказаться от
+ запоминания изменений. Если все клавиши работают нормально, то
+ сохранение, конечно, не требуется.
+@@ -2383,7 +2383,7 @@ FTP\-сервера, в памяти (в кеше). Время, в течени
+ .SH "    Сохранение установок"
+ При загрузке Midnight Commander пытается считать значения различных
+ установочных параметров из файла
+-.BR ~/.mc/ini .
++.BR ~/.config/mc/ini .
+ Если такого файла не существует, необходимая информация ищется в
+ общесистемном конфигурационном файле
+ .BR mc.ini .
+@@ -2398,7 +2398,7 @@ FTP\-сервера, в памяти (в кеше). Время, в течени
+ Команда
+ .I Сохранить настройки
+ создает файл
+-.BR ~/.mc/ini ,
++.BR ~/.config/mc/ini ,
+ в котором записываются текущие значения параметров, задаваемых опциями
+ меню
+ .\"LINK2"
+@@ -2608,13 +2608,13 @@ bash, tcsh и zsh.
+ .BR bash ,
+ можно указать команды, которые будут выполняться при запуске
+ subshell, в файле
+-.B ~/.mc/bashrc
++.B ~/.config/mc/bashrc
+ и специальную карту раскладки клавиатуры в файле
+-.B ~/.mc/inputrc.
++.B ~/.config/mc/inputrc.
+ Пользователи
+ .B tcsh
+ могут задать выполняемые при запуске команды в файле
+-.B ~/.mc/tcshrc.
++.B ~/.config/mc/tcshrc.
+ .PP
+ Во время выполнения приложения в subshell можно в любой момент нажать
+ комбинацию клавиш
+@@ -3245,7 +3245,7 @@ pipe text blocks through shell commands like indent).
+ любой из клавиш Meta (Alt), Ctrl, или Esc и назначенной макросу клавиши,
+ при условии, что данная комбинация не используется для вызова какой\-либо
+ другой функции. Макрокоманды после определения записываются в файл
+-.B .mc/cedit/cooledit.macros
++.B .config/mc/cedit/cooledit.macros
+ в вашем домашнем каталоге. Вы можете удалить макрос удалением
+ соответствующей строки в этом файле.
+ .PP
+@@ -3257,7 +3257,7 @@ pipe text blocks through shell commands like indent).
+ блока кода на языке C, C++ или других. Форматирование управляется файлом
+ .B @prefix@/share/mc/edit.indent.rc
+ который при первом вызове копируется в
+-.B .mc/cedit/edit.indent.rc
++.B .config/mc/cedit/edit.indent.rc
+ в вашем домашнем каталоге.
+ .PP
+ Встроенный редактор обрабатывает символы из второй половины кодовой
+@@ -3818,7 +3818,7 @@ base_color=normal=white,default:marked=magenta,default
+ нахождения):
+ .IP
+ 1)
+-.BR ~/.mc/skins/
++.BR ~/.config/mc/skins/
+ .br
+ 2)
+ .BR @sysconfdir@/mc/skins/
+@@ -4111,7 +4111,7 @@ base_color=normal=white,default:marked=magenta,default
+ .\"Skins"
+ .PP
+ Правила подсветки находятся в файле @sysconfdir@/mc/filehighlight.ini
+-(~/.mc/filehighlight.ini).
++(~/.config/mc/filehighlight.ini).
+ Названия групп должны совпадать с названиями параметров в секции
+ [filehighlight] в текущем скин\-файле.
+ .PP
+@@ -4154,7 +4154,7 @@ base_color=normal=white,default:marked=magenta,default
+ использования меню. Однако имеется несколько установок, которые могут
+ быть изменены только путем непосредственного редактирования
+ конфигурационного файла
+-.BR ~/.mc/ini .
++.BR ~/.config/mc/ini .
+ .PP
+ .I clear_before_exec
+ .IP
+@@ -4301,7 +4301,7 @@ Midnight Commander обеспечивает возможность внесен
+ файле (файл
+ .B mc.lib
+ в библиотечном каталоге программы Midnight Commander) или в файле
+-.B ~/.mc/ini
++.B ~/.config/mc/ini
+ секцию с названием "terminal:your\-terminal\-name", а затем секцию 
+ "terminal:general". Каждая строка в этих секциях содержит ключевое
+ слово, которое вы хотите определить, за которым следует знак равенства и
+@@ -4368,7 +4368,7 @@ insert=\\e[Op
+ .IP
+ Используемый по умолчанию общесистемный файл расширений.
+ .PP
+-.I ~/.mc/bindings
++.I ~/.config/mc/bindings
+ .IP
+ Файл расширений пользователя. Если этот файл существует, он используется
+ вместо общесистемного файла расширений.
+@@ -4378,19 +4378,19 @@ insert=\\e[Op
+ Используемый по умолчанию общесистемный файл установок для Midnight
+ Commander; используется только в тех случаях, когда пользователь не
+ имеет своего файла
+-.B ~/.mc/ini
++.B ~/.config/mc/ini
+ .PP
+ .I @prefix@/share/mc/mc.lib
+ .IP
+ Глобальные установки для Midnight Commander.  Установки из этого файла
+ действительны для всех пользователей, независимо от того, имеют ли они
+-~/.mc/ini или нет.  В настоящий момент только
++~/.config/mc/ini или нет.  В настоящий момент только
+ .\"LINK2"
+ настройки терминалов
+ .\"Terminal databases"
+ загружаются из mc.lib.
+ .PP
+-.I ~/.mc/ini
++.I ~/.config/mc/ini
+ .IP
+ Собственные установки пользователя. Если такой файл существует, то
+ установки загружаются из него, а не из общесистемного инициализационного
+@@ -4405,12 +4405,12 @@ Commander; используется только в тех случаях, ко
+ .IP
+ Этот файл содержит общесистемное меню приложений.
+ .PP
+-.I ~/.mc/menu
++.I ~/.config/mc/menu
+ .IP
+ Собственное меню пользователя. Если этот файл существует, он
+ используется вместо общесистемного меню.
+ .PP
+-.I ~/.mc/Tree
++.I ~/.config/mc/Tree
+ .IP
+ Список каталогов для окна, выводимого при выборе пункта меню
+ "Команда/Дерево каталогов" или при просмотре дерева каталогов в одной из
+@@ -4421,13 +4421,13 @@ Commander; используется только в тех случаях, ко
+ команду
+ .IP
+ .nf
+- find / \-type d \-print | sort > ~/.mc/Tree
++ find / \-type d \-print | sort > ~/.config/mc/Tree
+ .fi
+ .IP
+ Обычно не имеет смысла делать это, потому что Midnight Commander
+ автоматически обновляет этот файл.
+ .PP
+-.I ./.mc.menu
++.I ./.config/mc.menu
+ .IP
+ локальное меню, задаваемое пользователем. Если этот файл существует, он
+ используется вместо файла меню из домашнего каталога пользователя и
+diff --git a/doc/man/sr/mc.1.in b/doc/man/sr/mc.1.in
+index 1510b77..a042a2b 100644
+--- a/doc/man/sr/mc.1.in
++++ b/doc/man/sr/mc.1.in
+@@ -184,7 +184,7 @@ termcap/terminfo. Корисно је само на ХП\-овим термин
+ Подразумевано чекање при понављању за дугмад миша је 400 милисекунди.
+ Ово се може променити уређивањем датотеке
+ .\"LINK2"
+-\&~/.mc/ini
++\&~/.config/mc/ini
+ .\"Save Setup"
+ и променом параметра
+ .IR "mouse_repeat_rate".
+@@ -1207,7 +1207,7 @@ egrep(1). Ово значи да морате да наводите знаков
+ .B ignore_dirs
+ у одељку
+ .B FindFile
+-ваше датотеке ~/.mc/ini.
++ваше датотеке ~/.config/mc/ini.
+ .PP
+ Директоријуме би требало раздвајати двотачком; ево примера:
+ .PP
+@@ -1272,7 +1272,7 @@ awk '$9 ~! /incoming/ { print $9 }' < /var/log/xferlog
+ .\"NODE "    Extension File Edit"
+ .SH "    Уреди датотеку врста"
+ Ово покреће ваш уређивач над датотеком
+-.IR ~/.mc/bindings .
++.IR ~/.config/mc/bindings .
+ Формат ове датотеке је следећи:
+ .PP
+ Сви редови који почињу на # или празни редови се одбацују.
+@@ -1360,10 +1360,10 @@ awk '$9 ~! /incoming/ { print $9 }' < /var/log/xferlog
+ .SH "    Уреди датотеку менија"
+ Кориснички мени је мени корисних радњи кога корисник може
+ прилагођавати. Када приступите корисничком менију, користи се
+-датотека .mc.menu из текућег директоријума, уколико она постоји, али само
++датотека .config/mc.menu из текућег директоријума, уколико она постоји, али само
+ уколико је њен власник корисник или администратор (root) и није
+ дозвољен упис у њу од стране других (света). Ако таква датотека није
+-нађена, на исти начин се покушава са датотеком ~/.mc/menu, а иначе ПН
++нађена, на исти начин се покушава са датотеком ~/.config/mc/menu, а иначе ПН
+ користи подразумевану датотеку менија за цео систем
+ @prefix@/share/mc/mc.menu.
+ .PP
+@@ -1647,7 +1647,7 @@ L	Набраја садржај компримоване архиве врсте
+ .PP
+ .I Аутоматско чување подешавања.
+ Ако је овај избор укључен, подесиви избори Поноћног наредника ће бити
+-сачувани у датотеци ~/.mc/ini при изласку из Поноћног наредника.
++сачувани у датотеци ~/.config/mc/ini при изласку из Поноћног наредника.
+ .PP
+ .I Аутоматски менији.
+ Ако је овај избор укључен, при покретању Поноћног наредника ће бити
+@@ -1802,7 +1802,7 @@ L	Набраја садржај компримоване архиве врсте
+ .PP
+ Кад завршите са свим тастерима, можете да их сачувате. Дефиниције
+ тастера које сте задали ће бити уписане у одељак [terminal:TERM] ваше
+-датотеке ~/.mc/ini (где `TERM' представља назив вашег текућег
++датотеке ~/.config/mc/ini (где `TERM' представља назив вашег текућег
+ терминала). Дефиниције тастера који су већ исправно радили се не
+ чувају.
+ .\"NODE "    Virtual FS"
+@@ -1893,13 +1893,13 @@ ftpfs чува списак директоријума који добавља 
+ .\"NODE "    Save Setup"
+ .SH "    Сачувај подешавања"
+ При покретању, Поноћни наредник ће покушати да учита податке о
+-покретању из датотеке ~/.mc/ini. Ако ова датотека не постоји, учитаће
++покретању из датотеке ~/.config/mc/ini. Ако ова датотека не постоји, учитаће
+ податке из датотеке са подешавањима за цео систем. Ако ни она не
+ постоји, ПН ће користити подразумеване поставке.
+ .PP
+ Наредба
+ .I Сачувај подешавања
+-ствара датотеку ~/.mc/ini чувањем текућих поставки менија
++ствара датотеку ~/.config/mc/ini чувањем текућих поставки менија
+ .\"LINK2"
+ `Лево', `Десно'
+ .\"Left and Right Menus"
+@@ -2097,12 +2097,12 @@ linux би вас одвело у /usr/src/linux).
+ Уколико користите љуску
+ .BR "bash",
+ можете да задате наредбе које се извршавају при покретању подљуске у
+-вашој датотеци ~/.mc/bashrc а посебне мапе тастатуре у датотеци
+-~/.mc/inputrc.
++вашој датотеци ~/.config/mc/bashrc а посебне мапе тастатуре у датотеци
++~/.config/mc/inputrc.
+ Корисници љуске
+ .B tcsh
+ могу да задају наредбе које се извршавају при покретању у датотеци
+-~/.mc/tcshrc.
++~/.config/mc/tcshrc.
+ .PP
+ При употреби кода подљуске, можете било када да обуставите апликације
+ пречицом C\-o и вратите се у Поноћног наредника; уколико сте обуставили
+@@ -2513,7 +2513,7 @@ if the
+ `Meta', `Ctrl' или `Esc' са додељеним тастером, уз услов да се та
+ пречица не користи за нешто друго. Када су једном задане, макронаредбе
+ се смештају у датотеку
+-.B .mc/cedit/cooledit.macros
++.B .config/mc/cedit/cooledit.macros
+ у вашем домаћем директоријуму. Можете да обришете макро брисањем
+ одговарајућег реда у овој датотеци.
+ .PP
+@@ -2525,7 +2525,7 @@ if the
+ или другом). Овим се управља преко датотеке
+ .B @prefix@/share/mc/edit.indent.rc
+ која ће бити копирана у
+-.B .mc/cedit/edit.indent.rc
++.B .config/mc/cedit/edit.indent.rc
+ у вашем домаћем директоријуму први пут када је будете користили.
+ .PP
+ Уређивач такође приказује неамеричке знаке (160 и више). При уређивању
+@@ -3040,12 +3040,12 @@ base_color=normal=white,default:marked=magenta,default
+ Међутим, постоји нешто поставки које се могу изменити само уређивањем
+ датотеке поставки.
+ .PP
+-Ове променљиве се могу подесити у вашој датотеци `~/.mc/ini':
++Ове променљиве се могу подесити у вашој датотеци `~/.config/mc/ini':
+ .TP
+ .I clear_before_exec
+ Подразумевано ће пре извршавања наредбе Поноћни наредник очистити
+ екран. Уколико желите да видите излаз наредби на дну екрана, уредите
+-вашу датотеку `~/.mc/ini' и промените вредност поља
++вашу датотеку `~/.config/mc/ini' и промените вредност поља
+ `clear_before_exec' на 0.
+ .TP
+ .I confirm_view_dir
+@@ -3134,7 +3134,7 @@ base_color=normal=white,default:marked=magenta,default
+ терминала без потребе за администраторским привилегијама. Поноћни
+ наредник претражује системску датотеку са почетним поставкама
+ (датотеку `mc.lib' у библиотечком директоријуму Поноћног наредника),
+-онда одељак `terminal:назив\-вашег\-терминала' у датотеци  `~/.mc/ini',
++онда одељак `terminal:назив\-вашег\-терминала' у датотеци  `~/.config/mc/ini',
+ и онда одељак `terminal:general', чији сваки ред садржи симбол тастера
+ кога желите да задате, после кога следи знак једнакости и задавање
+ тастера. Можете да користите посебан облик `\\e' да бисте представили
+@@ -3186,7 +3186,7 @@ MC_DATADIR. Ако ова променљива није постављена, б
+ .IP
+ Подразумевана системска датотека врста.
+ .PP
+-.I ~/.mc/bindings
++.I ~/.config/mc/bindings
+ .IP
+ Корисничке датотеке врста, подешавања прегледача и уређивача. Уколико
+ постоје, оне заобилазе системске датотеке.
+@@ -3194,19 +3194,19 @@ MC_DATADIR. Ако ова променљива није постављена, б
+ .I @prefix@/share/mc/mc.ini
+ .IP
+ Подразумевана системска подешавања Поноћног наредника; користе се само
+-у случају да корисник нема сопствену датотеку ~/.mc/ini.
++у случају да корисник нема сопствену датотеку ~/.config/mc/ini.
+ .PP
+ .I @prefix@/share/mc/mc.lib
+ .IP
+ Глобалне поставке Поноћног наредника. Поставке из ове датотеке се
+ односе на све кориснике без обзира на то да ли они имају своје
+-датотеке ~/.mc/ini или не. За сада, из датотеке mc.lib се учитавају
++датотеке ~/.config/mc/ini или не. За сада, из датотеке mc.lib се учитавају
+ само
+ .\"LINK2"
+ поставке терминала\&.
+ .\"Terminal databases"
+ .PP
+-.I ~/.mc/ini
++.I ~/.config/mc/ini
+ .IP
+ Корисничка подешавања. Ако је ова датотека присутна, подешавања се
+ учитавају из ње уместо из системске почетне датотеке.
+@@ -3219,17 +3219,17 @@ MC_DATADIR. Ако ова променљива није постављена, б
+ .IP
+ Ова датотека садржи подразумевани мени програма за цео систем.
+ .PP
+-.I ~/.mc/menu
++.I ~/.config/mc/menu
+ .IP
+ Кориснички мени програма. Ако је ова датотека присутна, онда се она
+ користи уместо менија програма система.
+ .PP
+-.I ~/.mc/Tree
++.I ~/.config/mc/Tree
+ .IP
+ Списак директоријума за одлику `стабло директоријума' и
+ директоријумски поглед.
+ .PP
+-.I ./.mc.menu
++.I ./.config/mc.menu
+ .IP
+ Локални кориснички мени. Ако је ова датотека присутна, онда се она
+ користи уместо менија програма дома или система.
+diff --git a/lib/filehighlight/ini-file-read.c b/lib/filehighlight/ini-file-read.c
+index 964c8c1..5eab085 100644
+--- a/lib/filehighlight/ini-file-read.c
++++ b/lib/filehighlight/ini-file-read.c
+@@ -201,7 +201,7 @@ mc_fhl_init_from_standard_files (mc_fhl_t * fhl)
+     gchar *name;
+     gboolean ok;
+ 
+-    /* ~/.mc/filehighlight.ini */
++    /* ~/.config/mc/filehighlight.ini */
+     name = g_build_filename (home_dir, MC_USERCONF_DIR, MC_FHL_INI_FILE, (char *) NULL);
+     ok = mc_fhl_read_ini_file (fhl, name);
+     g_free (name);
+diff --git a/lib/fileloc.h b/lib/fileloc.h
+index 908e26b..ea64ba0 100644
+--- a/lib/fileloc.h
++++ b/lib/fileloc.h
+@@ -16,14 +16,14 @@
+ /*** typedefs(not structures) and defined constants **********************************************/
+ 
+ #ifndef MC_USERCONF_DIR
+-#define MC_USERCONF_DIR         ".mc"
++#define MC_USERCONF_DIR         ".config/mc"
+ #endif
+ 
+ #define TAGS_NAME               "TAGS"
+ 
+ #define MC_GLOBAL_CONFIG_FILE   "mc.lib"
+ #define MC_GLOBAL_MENU          "mc.menu"
+-#define MC_LOCAL_MENU           ".mc.menu"
++#define MC_LOCAL_MENU           ".config/mc.menu"
+ #define MC_HINT                 "hints" PATH_SEP_STR "mc.hint"
+ #define MC_HELP                 "help" PATH_SEP_STR "mc.hlp"
+ #define GLOBAL_KEYMAP_FILE      "mc.keymap"
+diff --git a/lib/skin/ini-file.c b/lib/skin/ini-file.c
+index 5dda200..11da993 100644
+--- a/lib/skin/ini-file.c
++++ b/lib/skin/ini-file.c
+@@ -98,7 +98,7 @@ mc_skin_ini_file_load (mc_skin_t * mc_skin)
+     }
+     g_free (file_name);
+ 
+-    /* ~/.mc/skins/ */
++    /* ~/.config/mc/skins/ */
+     user_home_dir = g_build_filename (home_dir, MC_USERCONF_DIR, (char *) NULL);
+     ok = mc_skin_ini_file_load_search_in_dir (mc_skin, user_home_dir);
+     g_free (user_home_dir);
+diff --git a/lib/tty/keyxdef.c b/lib/tty/keyxdef.c
+index 94fa74c..4f5b64d 100644
+--- a/lib/tty/keyxdef.c
++++ b/lib/tty/keyxdef.c
+@@ -424,7 +424,7 @@ load_qnx_key_defines (void)
+             {
+                 if (*__QTISSTR (str_idx))
+                 {
+-                    define_sequence (xtra_key_defines[idx].mc_code,
++                    define_sequence (xtra_key_defines[idx].config/mc_code,
+                                      __QTISSTR (str_idx), MCKEY_NOACTION);
+                 }
+             }
+diff --git a/lib/vfs/mc-vfs/extfs/README b/lib/vfs/mc-vfs/extfs/README
+index 0c21dda..34316d2 100644
+--- a/lib/vfs/mc-vfs/extfs/README
++++ b/lib/vfs/mc-vfs/extfs/README
+@@ -8,7 +8,7 @@ possible to create new virtual filesystems for the GNU MC very easily.
+ 
+ To handle requests, create a shell/perl/python/etc script/program
+ (with executable permissions) in $(libexecdir)/mc/extfs.d
+-or in ~/.mc/extfs.d.
++or in ~/.config/mc/extfs.d.
+ 
+ (Note: $(libexecdir) should be substituted for actual libexecdir path
+ stored when configured or compiled, like /usr/local/libexec or /usr/libexec).
+@@ -131,13 +131,13 @@ show on the console or can be redirected to a file.
+ 
+ * Putting it to use
+ ----------------------------------------------------------
+-The file .mc.ext in a home directory, and in mc's user directory (commonly
++The file .config/mc.ext in a home directory, and in mc's user directory (commonly
+ /usr/local/lib/mc), contains instructions for operations on files depending
+ on filename extensions.  It is well documented in other files in this 
+ distribution, so here are just a few notes specifically on use of the
+ Virtual File System you just built.
+ 
+-There are entries in .mc.ext defining a few operations that can be done on a
++There are entries in .config/mc.ext defining a few operations that can be done on a
+ file from an mc panel.  Typically they are annotated with a hash mark and a
+ file extension like this:
+ 
+@@ -174,7 +174,7 @@ a menu selection:
+ This is just an example.  The current entry for .zip files has a menu selection
+ of 'Unzip' which could be used in place of 'Extract'.  What goes here depends
+ on what items you have in, or add to, the menu system, and that's another 
+-subject.  The sum of this is the .mc.ext entry:
++subject.  The sum of this is the .config/mc.ext entry:
+ 
+ # zip
+ regex/\.(zip|ZIP)$
+@@ -183,7 +183,7 @@ regex/\.(zip|ZIP)$
+    Icon=zip.xpm
+    Extract=unzip %f '*'
+ 
+-Add an entry like this to the .mc.ext file in a user's home directory, If you
++Add an entry like this to the .config/mc.ext file in a user's home directory, If you
+ want others to have it, add it to the mc.ext file in the mc system directory,
+ often /usr/local/lib/mc/mc.ext.  Notice this file is not prepended with a dot.
+ 
+diff --git a/lib/vfs/mc-vfs/fish/README.fish b/lib/vfs/mc-vfs/fish/README.fish
+index fc60d1c..30d14d7 100644
+--- a/lib/vfs/mc-vfs/fish/README.fish
++++ b/lib/vfs/mc-vfs/fish/README.fish
+@@ -29,7 +29,7 @@ sytem-wide scripts if they exist. The order in which the folders are
+ traversed is as follows:
+ 
+     /usr/libexec/mc/fish
+-    ~/.mc/fish/<hostname>/
++    ~/.config/mc/fish/<hostname>/
+ 
+ Server's reply is multiline, but always ends with
+ 
+diff --git a/lib/widget/history.c b/lib/widget/history.c
+index f54a35f..8226f03 100644
+--- a/lib/widget/history.c
++++ b/lib/widget/history.c
+@@ -209,7 +209,7 @@ history_get (const char *input_name)
+ /*
+    This saves the history of an input line from the widget. It is called
+    with the widgets history name. It stores histories in the file
+-   ~/.mc/history in using the profile code.
++   ~/.config/mc/history in using the profile code.
+  */
+ void
+ history_put (const char *input_name, GList * h)
+diff --git a/src/filemanager/tree.c b/src/filemanager/tree.c
+index e721ab6..5df0c2f 100644
+--- a/src/filemanager/tree.c
++++ b/src/filemanager/tree.c
+@@ -160,7 +160,7 @@ remove_callback (tree_entry * entry, void *data)
+ }
+ 
+ /* --------------------------------------------------------------------------------------------- */
+-/** Save the ~/.mc/Tree file */
++/** Save the ~/.config/mc/Tree file */
+ 
+ static void
+ save_tree (WTree * tree)
+@@ -204,7 +204,7 @@ tree_destroy (WTree * tree)
+ }
+ 
+ /* --------------------------------------------------------------------------------------------- */
+-/** Loads the .mc.tree file */
++/** Loads the .config/mc.tree file */
+ 
+ static void
+ load_tree (WTree * tree)
+diff --git a/src/setup.c b/src/setup.c
+index 1763197..c447e4e 100644
+--- a/src/setup.c
++++ b/src/setup.c
+@@ -78,7 +78,7 @@
+ 
+ /*** global variables ****************************************************************************/
+ 
+-char *profile_name;             /* .mc/ini */
++char *profile_name;             /* .config/mc/ini */
+ char *global_profile_name;      /* mc.lib */
+ 
+ /* Only used at program boot */
+@@ -190,7 +190,7 @@ int file_op_compute_totals = 1;
+ 
+ /*** file scope variables ************************************************************************/
+ 
+-static char *panels_profile_name = NULL;        /* .mc/panels.ini */
++static char *panels_profile_name = NULL;        /* .config/mc/panels.ini */
+ 
+ /* *INDENT-OFF* */
+ static const struct
+@@ -683,7 +683,7 @@ load_setup_get_keymap_profile_config (void)
+     load_setup_init_config_from_file (&keymap_config, fname);
+     g_free (fname);
+ 
+-    /* 3) ~/.mc (home_dir?) */
++    /* 3) ~/.config/mc (home_dir?) */
+     fname = g_build_filename (home_dir, MC_USERCONF_DIR, GLOBAL_KEYMAP_FILE, NULL);
+     load_setup_init_config_from_file (&keymap_config, fname);
+     g_free (fname);
+@@ -851,7 +851,7 @@ load_setup (void)
+     profile = setup_init ();
+ 
+     /* mc.lib is common for all users, but has priority lower than
+-       ~/.mc/ini.  FIXME: it's only used for keys and treestore now */
++       ~/.config/mc/ini.  FIXME: it's only used for keys and treestore now */
+     global_profile_name = g_build_filename (mc_home, MC_GLOBAL_CONFIG_FILE, (char *) NULL);
+     if (!exist_file (global_profile_name))
+     {
+@@ -1103,7 +1103,7 @@ void
+ load_key_defs (void)
+ {
+     /*
+-     * Load keys from mc.lib before ~/.mc/ini, so that the user
++     * Load keys from mc.lib before ~/.config/mc/ini, so that the user
+      * definitions override global settings.
+      */
+     mc_config_t *mc_global_config;
+@@ -1144,7 +1144,7 @@ void
+ load_keymap_defs (void)
+ {
+     /*
+-     * Load keymap from GLOBAL_KEYMAP_FILE before ~/.mc/keymap, so that the user
++     * Load keymap from GLOBAL_KEYMAP_FILE before ~/.config/mc/keymap, so that the user
+      * definitions override global settings.
+      */
+     mc_config_t *mc_global_keymap;
+-- 
+1.7.7
+
