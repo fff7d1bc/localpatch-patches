@@ -1,0 +1,44 @@
+From 47daa65cf0603be713653c25d869f2db34dd3d2a Mon Sep 17 00:00:00 2001
+From: Piotr Karbowski <piotr.karbowski@gmail.com>
+Date: Thu, 13 Oct 2011 15:13:41 +0200
+Subject: [PATCH] By default use $HOME/.config/fontconfig instead of
+ $HOME/.fontconfig.
+
+Almost like support for XDG Base Directory Specification, almost.
+---
+ fonts.conf.in |    2 +-
+ src/fcinit.c  |    4 ++--
+ 2 files changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/fonts.conf.in b/fonts.conf.in
+index a17c01e..a7c0ecd 100644
+--- a/fonts.conf.in
++++ b/fonts.conf.in
+@@ -71,7 +71,7 @@
+ <!-- Font cache directory list -->
+ 
+ 	<cachedir>@FC_CACHEDIR@</cachedir>
+-	<cachedir>~/.fontconfig</cachedir>
++	<cachedir>~/.config/fontconfig</cachedir>
+ 
+ 	<config>
+ <!--
+diff --git a/src/fcinit.c b/src/fcinit.c
+index 3789d67..8070de2 100644
+--- a/src/fcinit.c
++++ b/src/fcinit.c
+@@ -78,9 +78,9 @@ FcInitLoadConfig (void)
+ 		 "Fontconfig warning: adding <cachedir>%s</cachedir>\n",
+ 		 FC_CACHEDIR);
+ 	fprintf (stderr,
+-		 "Fontconfig warning: adding <cachedir>~/.fontconfig</cachedir>\n");
++		 "Fontconfig warning: adding <cachedir>~/.config/fontconfig</cachedir>\n");
+ 	if (!FcConfigAddCacheDir (config, (FcChar8 *) FC_CACHEDIR) ||
+-	    !FcConfigAddCacheDir (config, (FcChar8 *) "~/.fontconfig"))
++	    !FcConfigAddCacheDir (config, (FcChar8 *) "~/.config/fontconfig"))
+ 	{
+ 	    fprintf (stderr,
+ 		     "Fontconfig error: out of memory");
+-- 
+1.7.7
+
