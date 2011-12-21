@@ -1,0 +1,398 @@
+From 19a26f82145042062cb2b11292622efb3ccac37f Mon Sep 17 00:00:00 2001
+From: Matthijs Kooijman <matthijs@stdin.nl>
+Date: Tue, 30 Aug 2011 23:50:23 +0200
+Subject: [PATCH] add autodetection of the gateway address
+
+For veth and macvlan networks, this can look up the host address on the
+bridge (link) interface and add a default route on the guest to that
+address. This facilitates a typical setup where guests are bridged
+together.
+
+syntax:
+	lxc.ipv4.gateway = auto
+	lxc.ipv6.gateway = auto
+
+Signed-off-by: Daniel Lezcano <dlezcano@fr.ibm.com>
+---
+ src/lxc/conf.c    |   58 ++++++++++++++++++++
+ src/lxc/conf.h    |    4 ++
+ src/lxc/confile.c |   32 ++++++++----
+ src/lxc/network.c |  157 +++++++++++++++++++++++++++++++++++++++++++++++++++++
+ src/lxc/network.h |    6 ++
+ src/lxc/start.c   |   10 ++++
+ 6 files changed, 257 insertions(+), 10 deletions(-)
+
+diff --git a/src/lxc/conf.c b/src/lxc/conf.c
+index 751dce0..613e476 100644
+--- a/src/lxc/conf.c
++++ b/src/lxc/conf.c
+@@ -1342,6 +1342,11 @@ static int setup_netdev(struct lxc_netdev *netdev)
+ 		if (err) {
+ 			ERROR("failed to setup ipv4 gateway for '%s': %s",
+ 				      ifname, strerror(-err));
++			if (netdev->ipv4_gateway_auto) {
++				char buf[INET_ADDRSTRLEN];
++				inet_ntop(AF_INET, netdev->ipv4_gateway, buf, sizeof(buf));
++				ERROR("tried to set autodetected ipv4 gateway '%s'", buf);
++			}
+ 			return -1;
+ 		}
+ 	}
+@@ -1362,6 +1367,11 @@ static int setup_netdev(struct lxc_netdev *netdev)
+ 		if (err) {
+ 			ERROR("failed to setup ipv6 gateway for '%s': %s",
+ 				      ifname, strerror(-err));
++			if (netdev->ipv6_gateway_auto) {
++				char buf[INET6_ADDRSTRLEN];
++				inet_ntop(AF_INET, netdev->ipv6_gateway, buf, sizeof(buf));
++				ERROR("tried to set autodetected ipv6 gateway '%s'", buf);
++			}
+ 			return -1;
+ 		}
+ 	}
+@@ -1684,6 +1694,54 @@ int lxc_assign_network(struct lxc_list *network, pid_t pid)
+ 	return 0;
+ }
+ 
++int lxc_find_gateway_addresses(struct lxc_handler *handler)
++{
++	struct lxc_list *network = &handler->conf->network;
++	struct lxc_list *iterator;
++	struct lxc_netdev *netdev;
++	int link_index;
++
++	lxc_list_for_each(iterator, network) {
++		netdev = iterator->elem;
++
++		if (!netdev->ipv4_gateway_auto && !netdev->ipv6_gateway_auto)
++			continue;
++
++		if (netdev->type != LXC_NET_VETH && netdev->type != LXC_NET_MACVLAN) {
++			ERROR("gateway = auto only supported for "
++			      "veth and macvlan");
++			return -1;
++		}
++
++		if (!netdev->link) {
++			ERROR("gateway = auto needs a link interface");
++			return -1;
++		}
++
++		link_index = if_nametoindex(netdev->link);
++		if (!link_index)
++			return -EINVAL;
++
++		if (netdev->ipv4_gateway_auto) {
++			if (lxc_ipv4_addr_get(link_index, &netdev->ipv4_gateway)) {
++				ERROR("failed to automatically find ipv4 gateway "
++				      "address from link interface '%s'", netdev->link);
++				return -1;
++			}
++		}
++
++		if (netdev->ipv6_gateway_auto) {
++			if (lxc_ipv6_addr_get(link_index, &netdev->ipv6_gateway)) {
++				ERROR("failed to automatically find ipv6 gateway "
++				      "address from link interface '%s'", netdev->link);
++				return -1;
++			}
++		}
++	}
++
++	return 0;
++}
++
+ int lxc_create_tty(const char *name, struct lxc_conf *conf)
+ {
+ 	struct lxc_tty_info *tty_info = &conf->tty_info;
+diff --git a/src/lxc/conf.h b/src/lxc/conf.h
+index 328d236..973f694 100644
+--- a/src/lxc/conf.h
++++ b/src/lxc/conf.h
+@@ -25,6 +25,7 @@
+ 
+ #include <netinet/in.h>
+ #include <sys/param.h>
++#include <stdbool.h>
+ 
+ #include <lxc/list.h>
+ 
+@@ -115,7 +116,9 @@ struct lxc_netdev {
+ 	struct lxc_list ipv4;
+ 	struct lxc_list ipv6;
+ 	struct in_addr *ipv4_gateway;
++	bool ipv4_gateway_auto;
+ 	struct in6_addr *ipv6_gateway;
++	bool ipv6_gateway_auto;
+ 	char *upscript;
+ };
+ 
+@@ -219,6 +222,7 @@ extern struct lxc_conf *lxc_conf_init(void);
+ extern int lxc_create_network(struct lxc_handler *handler);
+ extern void lxc_delete_network(struct lxc_list *networks);
+ extern int lxc_assign_network(struct lxc_list *networks, pid_t pid);
++extern int lxc_find_gateway_addresses(struct lxc_handler *handler);
+ 
+ extern int lxc_create_tty(const char *name, struct lxc_conf *conf);
+ extern void lxc_delete_tty(struct lxc_tty_info *tty_info);
+diff --git a/src/lxc/confile.c b/src/lxc/confile.c
+index 8e215f8..550102c 100644
+--- a/src/lxc/confile.c
++++ b/src/lxc/confile.c
+@@ -458,12 +458,18 @@ static int config_network_ipv4_gateway(const char *key, char *value,
+ 		return -1;
+ 	}
+ 
+-	if (!inet_pton(AF_INET, value, gw)) {
+-		SYSERROR("invalid ipv4 gateway address: %s", value);
+-		return -1;
+-	}
++	if (!strcmp(value, "auto")) {
++		netdev->ipv4_gateway = NULL;
++		netdev->ipv4_gateway_auto = true;
++	} else {
++		if (!inet_pton(AF_INET, value, gw)) {
++			SYSERROR("invalid ipv4 gateway address: %s", value);
++			return -1;
++		}
+ 
+-	netdev->ipv4_gateway = gw;
++		netdev->ipv4_gateway = gw;
++		netdev->ipv4_gateway_auto = false;
++	}
+ 
+ 	return 0;
+ }
+@@ -536,12 +542,18 @@ static int config_network_ipv6_gateway(const char *key, char *value,
+ 		return -1;
+ 	}
+ 
+-	if (!inet_pton(AF_INET6, value, gw)) {
+-		SYSERROR("invalid ipv6 gateway address: %s", value);
+-		return -1;
+-	}
++	if (!strcmp(value, "auto")) {
++		netdev->ipv6_gateway = NULL;
++		netdev->ipv6_gateway_auto = true;
++	} else {
++		if (!inet_pton(AF_INET6, value, gw)) {
++			SYSERROR("invalid ipv6 gateway address: %s", value);
++			return -1;
++		}
+ 
+-	netdev->ipv6_gateway = gw;
++		netdev->ipv6_gateway = gw;
++		netdev->ipv6_gateway_auto = false;
++	}
+ 
+ 	return 0;
+ }
+diff --git a/src/lxc/network.c b/src/lxc/network.c
+index b1d60f2..5110ca7 100644
+--- a/src/lxc/network.c
++++ b/src/lxc/network.c
+@@ -746,6 +746,163 @@ int lxc_ipv4_addr_add(int ifindex, struct in_addr *addr,
+ 	return ip_addr_add(AF_INET, ifindex, addr, bcast, NULL, prefix);
+ }
+ 
++/* Find an IFA_LOCAL (or IFA_ADDRESS if not IFA_LOCAL is present)
++ * address from the given RTM_NEWADDR message.  Allocates memory for the
++ * address and stores that pointer in *res (so res should be an
++ * in_addr** or in6_addr**).
++ */
++static int ifa_get_local_ip(int family, struct ip_req *ip_info, void** res) {
++	struct rtattr *rta = IFA_RTA(&ip_info->ifa);
++	int attr_len = IFA_PAYLOAD(&ip_info->nlmsg.nlmsghdr);
++	int addrlen;
++
++	if (ip_info->ifa.ifa_family != family)
++		return 0;
++
++	addrlen = family == AF_INET ? sizeof(struct in_addr) :
++		sizeof(struct in6_addr);
++
++	/* Loop over the rtattr's in this message */
++	while(RTA_OK(rta, attr_len)) {
++		/* Found a local address for the requested interface,
++		 * return it. */
++		if (rta->rta_type == IFA_LOCAL || rta->rta_type == IFA_ADDRESS) {
++			/* Sanity check. The family check above should
++			 * make sure the address length is correct, but
++			 * check here just in case */
++			if (RTA_PAYLOAD(rta) != addrlen)
++				return -1;
++
++			/* We might have found an IFA_ADDRESS before,
++			 * which we now overwrite with an IFA_LOCAL. */
++			if (!*res)
++				*res = malloc(addrlen);
++
++			memcpy(*res, RTA_DATA(rta), addrlen);
++
++			if (rta->rta_type == IFA_LOCAL)
++				break;
++		}
++		rta = RTA_NEXT(rta, attr_len);
++	}
++	return 0;
++}
++
++static int ip_addr_get(int family, int ifindex, void **res)
++{
++	struct nl_handler nlh;
++	struct nlmsg *nlmsg = NULL, *answer = NULL;
++	struct ip_req *ip_req, *ip_info;
++	struct nlmsghdr *msg;
++	int err;
++	int recv_len = 0, answer_len;
++	int readmore = 0;
++
++	err = netlink_open(&nlh, NETLINK_ROUTE);
++	if (err)
++		return err;
++
++	err = -ENOMEM;
++	nlmsg = nlmsg_alloc(NLMSG_GOOD_SIZE);
++	if (!nlmsg)
++		goto out;
++
++	answer = nlmsg_alloc(NLMSG_GOOD_SIZE);
++	if (!answer)
++		goto out;
++
++	/* Save the answer buffer length, since it will be overwritten
++	 * on the first receive (and we might need to receive more than
++	 * once. */
++	answer_len = answer->nlmsghdr.nlmsg_len;
++
++	ip_req = (struct ip_req *)nlmsg;
++	ip_req->nlmsg.nlmsghdr.nlmsg_len =
++		NLMSG_LENGTH(sizeof(struct ifaddrmsg));
++	ip_req->nlmsg.nlmsghdr.nlmsg_flags = NLM_F_REQUEST|NLM_F_ROOT;
++	ip_req->nlmsg.nlmsghdr.nlmsg_type = RTM_GETADDR;
++	ip_req->ifa.ifa_family = family;
++
++	/* Send the request for addresses, which returns all addresses
++	 * on all interfaces. */
++	err = netlink_send(&nlh, nlmsg);
++	if (err < 0)
++		goto out;
++	err = 0;
++
++	do {
++		/* Restore the answer buffer length, it might have been
++		 * overwritten by a previous receive. */
++		answer->nlmsghdr.nlmsg_len = answer_len;
++
++		/* Get the (next) batch of reply messages */
++		err = netlink_rcv(&nlh, answer);
++		if (err < 0)
++			goto out;
++
++		recv_len = err;
++		err = 0;
++
++		/* Satisfy the typing for the netlink macros */
++		msg = &answer->nlmsghdr;
++
++		while (NLMSG_OK(msg, recv_len)) {
++			/* Stop reading if we see an error message */
++			if (msg->nlmsg_type == NLMSG_ERROR) {
++				struct nlmsgerr *errmsg = (struct nlmsgerr*)NLMSG_DATA(msg);
++				err = errmsg->error;
++				goto out;
++			}
++
++			/* Stop reading if we see a NLMSG_DONE message */
++			if (msg->nlmsg_type == NLMSG_DONE) {
++				readmore = 0;
++				break;
++			}
++
++			if (msg->nlmsg_type != RTM_NEWADDR) {
++				err = -1;
++				goto out;
++			}
++
++			ip_info = (struct ip_req *)msg;
++			if (ip_info->ifa.ifa_index == ifindex) {
++				ifa_get_local_ip(family, ip_info, res);
++				/* Found a result, stop searching */
++				if (*res)
++					goto out;
++			}
++
++			/* Keep reading more data from the socket if the
++			 * last message had the NLF_F_MULTI flag set */
++			readmore = (msg->nlmsg_flags & NLM_F_MULTI);
++
++			/* Look at the next message received in this buffer */
++			msg = NLMSG_NEXT(msg, recv_len);
++		}
++	} while (readmore);
++
++	/* If we end up here, we didn't find any result, so signal an
++	 * error */
++	err = -1;
++
++out:
++	netlink_close(&nlh);
++	nlmsg_free(answer);
++	nlmsg_free(nlmsg);
++	return err;
++}
++
++int lxc_ipv6_addr_get(int ifindex, struct in6_addr **res)
++{
++	return ip_addr_get(AF_INET6, ifindex, (void**)res);
++}
++
++int lxc_ipv4_addr_get(int ifindex, struct in_addr** res)
++{
++	return ip_addr_get(AF_INET, ifindex, (void**)res);
++}
++
+ static int ip_gateway_add(int family, int ifindex, void *gw)
+ {
+ 	struct nl_handler nlh;
+diff --git a/src/lxc/network.h b/src/lxc/network.h
+index 5a1fd50..0fd5e5d 100644
+--- a/src/lxc/network.h
++++ b/src/lxc/network.h
+@@ -84,6 +84,12 @@ extern int lxc_ipv4_addr_add(int ifindex, struct in_addr *addr,
+ 			     struct in_addr *bcast, int prefix);
+ 
+ /*
++ * Get ip address
++ */
++extern int lxc_ipv4_addr_get(int ifindex, struct in_addr **res);
++extern int lxc_ipv6_addr_get(int ifindex, struct in6_addr **res);
++
++/*
+  * Set default route.
+  */
+ extern int lxc_ipv4_gateway_add(int ifindex, struct in_addr *gw);
+diff --git a/src/lxc/start.c b/src/lxc/start.c
+index b8ceff6..6737a44 100644
+--- a/src/lxc/start.c
++++ b/src/lxc/start.c
+@@ -483,6 +483,16 @@ int lxc_spawn(struct lxc_handler *handler)
+ 
+ 		clone_flags |= CLONE_NEWNET;
+ 
++		/* Find gateway addresses from the link device, which is
++		 * no longer accessible inside the container. Do this
++		 * before creating network interfaces, since goto
++		 * out_delete_net does not work before lxc_clone. */
++		if (lxc_find_gateway_addresses(handler)) {
++			ERROR("failed to find gateway addresses");
++			lxc_sync_fini(handler);
++			return -1;
++		}
++
+ 		/* that should be done before the clone because we will
+ 		 * fill the netdev index and use them in the child
+ 		 */
+-- 
+1.7.8
+
