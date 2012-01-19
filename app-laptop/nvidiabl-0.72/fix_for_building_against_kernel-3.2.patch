@@ -1,0 +1,24 @@
+From 0398bf62d78d38028d09f5660428f989caf7cf2e Mon Sep 17 00:00:00 2001
+From: brezerk <brezerk@gmail.com>
+Date: Thu, 19 Jan 2012 09:55:22 +0200
+Subject: [PATCH] Fixed: simple fix for building with Linux 3.2 Kernel
+
+---
+ nvidiabl-models.c |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
+
+diff --git a/nvidiabl-models.c b/nvidiabl-models.c
+index cbd047f..d2a4ab2 100644
+--- a/nvidiabl-models.c
++++ b/nvidiabl-models.c
+@@ -13,6 +13,7 @@
+  * (at your option) any later version.
+  */
+ 
++#include <linux/moduleparam.h>
+ #include "nvidiabl-models.h"
+ 
+ /* Register constants */
+-- 
+1.7.8.3
+
