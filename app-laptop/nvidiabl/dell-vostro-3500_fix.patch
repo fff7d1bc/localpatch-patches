@@ -1,0 +1,30 @@
+From 841b0de8f0e2768c8364f7fabc8b5c1567765443 Mon Sep 17 00:00:00 2001
+From: Piotr Karbowski <piotr.karbowski@gmail.com>
+Date: Wed, 18 Apr 2012 13:01:47 +0200
+Subject: [PATCH] Fix for the Dell Vostro 3500.
+
+When X's config contain:
+
+	Option "RegistryDwords" "EnableBrightnessControl=1"
+
+Then after starting X we need to set max brightness to 0x7000, however sometimes (like when you shutdown system while being not on full-brightness) it failing to set full brightness. After removing such option from X's config and setting max to 'NVIDIABL_AUTO' the problem is fixed. The nvidia's 'EnableBrightnessControl=1' was to blame.
+---
+ nvidiabl-laptops.h |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+
+diff --git a/nvidiabl-laptops.h b/nvidiabl-laptops.h
+index 3e2af50..87f7807 100644
+--- a/nvidiabl-laptops.h
++++ b/nvidiabl-laptops.h
+@@ -48,7 +48,7 @@ NVIDIABL_DECLARE_LAPTOP_MODEL("Sony Corporation", "VGN-S560", PCI_ANY_ID, NVIDIA
+ NVIDIABL_DECLARE_LAPTOP_MODEL("Sony Corporation", "VPCF1", PCI_ANY_ID, NVIDIABL_AUTO, NVIDIABL_AUTO, NVIDIABL_AUTO),
+ 
+ NVIDIABL_DECLARE_LAPTOP_MODEL("Dell Inc.", "Inspiron 1370", PCI_ANY_ID, NVIDIABL_AUTO, NVIDIABL_AUTO, NVIDIABL_AUTO),
+-NVIDIABL_DECLARE_LAPTOP_MODEL("Dell Inc.", "Vostro 3500", PCI_ANY_ID, NVIDIABL_AUTO, NVIDIABL_AUTO, 0x7000),
++NVIDIABL_DECLARE_LAPTOP_MODEL("Dell Inc.", "Vostro 3500", PCI_ANY_ID, NVIDIABL_AUTO, NVIDIABL_AUTO, NVIDIABL_AUTO),
+ 
+ NVIDIABL_DECLARE_LAPTOP_MODEL("SAMSUNG ELECTRONICS CO., LTD.", "N510", PCI_ANY_ID, NVIDIABL_AUTO, NVIDIABL_AUTO, NVIDIABL_AUTO),
+ NVIDIABL_DECLARE_LAPTOP_MODEL("SAMSUNG ELECTRONICS CO., LTD.", "SR70S/SR71S", PCI_ANY_ID, NVIDIABL_AUTO, NVIDIABL_AUTO, NVIDIABL_AUTO),
+-- 
+1.7.8.5
+
