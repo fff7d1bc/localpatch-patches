@@ -1,8 +1,0 @@
-patches:
-tested with 0.8.53, 0.8.54 and 0.9.3.
-
-nginx-logfiles-permissions-1.patch:
-reset log files owner (nginx) permissions to S_IWUSR only.
-
-nginx-logfiles-permissions-2.patch:
-first change log file permissions, thereafter change owner. 
