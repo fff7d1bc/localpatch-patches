@@ -1,0 +1,25 @@
+From 96c6d5af2cd3fd65f2f6cb4aeabcdd7d6903b729 Mon Sep 17 00:00:00 2001
+From: Piotr Karbowski <piotr.karbowski@gmail.com>
+Date: Sat, 26 Oct 2013 10:30:13 +0200
+Subject: [PATCH] Temp files in /var/lib is stupid idea.
+
+logrotate have rwcd perms on /var/log anyway so it shoudn't mess with
+/var/lib at all.
+---
+ config.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/config.h b/config.h
+index d715c5a..fa227eb 100644
+--- a/config.h
++++ b/config.h
+@@ -43,5 +43,5 @@
+ #endif
+ 
+ #ifndef STATEFILE
+-#define STATEFILE "/var/lib/logrotate.status"
++#define STATEFILE "/var/log/logrotate.status"
+ #endif
+-- 
+1.8.3.2
+
