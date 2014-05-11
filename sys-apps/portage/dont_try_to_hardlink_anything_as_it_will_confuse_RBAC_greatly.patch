@@ -1,0 +1,14 @@
+diff --git a/pym/portage/util/movefile.py b/pym/portage/util/movefile.py
+index 452e77f..1f54399 100644
+--- a/pym/portage/util/movefile.py
++++ b/pym/portage/util/movefile.py
+@@ -156,6 +156,9 @@ def movefile(src, dest, newmtime=None, sstat=None, mysettings=None,
+ 	and None on failure.  mtime is expressed in seconds in Python <3.3 and nanoseconds in
+ 	Python >=3.3.  Move is atomic."""
+ 
++	# Ingore whatever is passed here.
++	hardlink_candidates=None
++
+ 	if mysettings is None:
+ 		mysettings = portage.settings
+ 
