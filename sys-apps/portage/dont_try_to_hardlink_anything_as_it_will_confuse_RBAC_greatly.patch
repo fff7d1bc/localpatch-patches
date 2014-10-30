@@ -1,14 +1,13 @@
-diff --git a/pym/portage/util/movefile.py b/pym/portage/util/movefile.py
-index 452e77f..1f54399 100644
---- a/pym/portage/util/movefile.py
-+++ b/pym/portage/util/movefile.py
-@@ -156,6 +156,9 @@ def movefile(src, dest, newmtime=None, sstat=None, mysettings=None,
- 	and None on failure.  mtime is expressed in seconds in Python <3.3 and nanoseconds in
- 	Python >=3.3.  Move is atomic."""
+diff --git a/pym/portage/dbapi/vartree.py b/pym/portage/dbapi/vartree.py
+index 11384bf..b431669 100644
+--- a/pym/portage/dbapi/vartree.py
++++ b/pym/portage/dbapi/vartree.py
+@@ -4785,7 +4785,7 @@ class dblink(object):
+ 						encoding=_encodings['merge'])
+ 					if mymtime is None:
+ 						return 1
+-					hardlink_candidates.append(mydest)
++					#hardlink_candidates.append(mydest)
+ 					zing = ">>>"
  
-+	# Ingore whatever is passed here.
-+	hardlink_candidates=None
-+
- 	if mysettings is None:
- 		mysettings = portage.settings
- 
+ 					try:
