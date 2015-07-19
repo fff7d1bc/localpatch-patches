@@ -1,18 +1,8 @@
-From c03a6a7113455882986ab9bb881fe206577dc4bd Mon Sep 17 00:00:00 2001
-From: Piotr Karbowski <piotr.karbowski@gmail.com>
-Date: Tue, 14 Aug 2012 10:54:44 +0200
-Subject: [PATCH] Change the location of dummy symlink lockfile.
-
-Append a prefix so it will look less retarded in RBAC policy.
----
- Src/hist.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
-
 diff --git a/Src/hist.c b/Src/hist.c
-index 0e63dca..68c360b 100644
+index bd03c4f..da29149 100644
 --- a/Src/hist.c
 +++ b/Src/hist.c
-@@ -2650,7 +2650,7 @@ lockhistfile(char *fn, int keep_trying)
+@@ -2952,7 +2952,7 @@ lockhistfile(char *fn, int keep_trying)
  	char *lockfile;
  #ifdef HAVE_LINK
  # ifdef HAVE_SYMLINK
@@ -21,15 +11,12 @@ index 0e63dca..68c360b 100644
  # else
  	char *tmpfile;
  # endif
-@@ -2661,7 +2661,7 @@ lockhistfile(char *fn, int keep_trying)
+@@ -2968,7 +2968,7 @@ lockhistfile(char *fn, int keep_trying)
  	 * avoid a change from open()-based locking to symlink()-based. */
  #ifdef HAVE_LINK
  # ifdef HAVE_SYMLINK
 -	sprintf(pidbuf, "/pid-%ld/host-", (long)mypid);
 +	sprintf(pidbuf, "/tmp/zsh-dummy-symlink-lock/pid-%ld/host-", (long)mypid);
- 	lnk = bicat(pidbuf, getsparam("HOST"));
+ 	lnk = getsparam("HOST");
+ 	lnk = bicat(pidbuf, lnk ? lnk : "");
  	/* We'll abuse fd as our success flag. */
- 	while ((fd = symlink(lnk, lockfile)) < 0) {
--- 
-1.7.8.6
-
