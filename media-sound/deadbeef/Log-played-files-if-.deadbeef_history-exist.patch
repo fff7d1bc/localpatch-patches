@@ -1,0 +1,41 @@
+From f61acecb894485f55c2b640e2126b77bb6aeaca8 Mon Sep 17 00:00:00 2001
+From: KARBOWSKI Piotr <piotr.karbowski@gmail.com>
+Date: Sat, 1 Oct 2016 18:34:49 +0200
+Subject: [PATCH] Log played files, if ~/.deadbeef_history exist.
+
+---
+ streamer.c | 18 ++++++++++++++++++
+ 1 file changed, 18 insertions(+)
+
+diff --git a/streamer.c b/streamer.c
+index e73bb99..1317465 100644
+--- a/streamer.c
++++ b/streamer.c
+@@ -284,6 +284,24 @@ send_trackchanged (playItem_t *from, playItem_t *to) {
+     event->from = (DB_playItem_t *)from;
+     event->to = (DB_playItem_t *)to;
+     messagepump_push_event ((ddb_event_t *)event, 0, 0);
++
++    if (event->to) {
++        char *homedir = getenv ("HOME");
++        if (homedir) {
++            size_t l = strlen (homedir);
++            const char history_file[] = "/.deadbeef_history";
++            char fname[l + sizeof (history_file)];
++            memcpy (fname, homedir, l);
++            memcpy (fname + l, history_file, sizeof (history_file));
++            if ( access (fname, F_OK) != -1 ) {
++                FILE *history = fopen (fname, "a");
++                if (history) {
++                    fprintf (history, "%d %s\n", time(NULL), pl_find_meta (event->to, ":URI"));
++                    fclose  (history);
++                }
++            }
++        }
++    }
+ }
+ 
+ static void
+-- 
+2.10.0
+
