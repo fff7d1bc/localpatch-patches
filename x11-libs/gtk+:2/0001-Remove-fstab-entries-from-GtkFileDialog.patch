@@ -1,0 +1,26 @@
+From f599ab9e20dc5eb2215bac798ac0c62ad0b4528c Mon Sep 17 00:00:00 2001
+From: KARBOWSKI Piotr <piotr.karbowski@gmail.com>
+Date: Sun, 27 Nov 2016 16:30:13 +0100
+Subject: [PATCH] Remove 'fstab entries' from GtkFileDialog.
+
+Now the fiel dialog is much cleaner.
+---
+ gtk/gtkfilechooserdefault.c | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/gtk/gtkfilechooserdefault.c b/gtk/gtkfilechooserdefault.c
+index db097d4..8e8af57 100644
+--- a/gtk/gtkfilechooserdefault.c
++++ b/gtk/gtkfilechooserdefault.c
+@@ -1974,6 +1974,8 @@ shortcuts_get_index (GtkFileChooserDefault *impl,
+ static void
+ shortcuts_add_volumes (GtkFileChooserDefault *impl)
+ {
++  return 0;
++
+   int start_row;
+   GSList *list, *l;
+   int n;
+-- 
+2.11.0.rc2
+
