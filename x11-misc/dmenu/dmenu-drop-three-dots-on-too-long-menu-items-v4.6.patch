@@ -1,0 +1,25 @@
+From 3b43973fe27b072ee7078ac22a0a0c9406f45e37 Mon Sep 17 00:00:00 2001
+From: KARBOWSKI Piotr <piotr.karbowski@gmail.com>
+Date: Sun, 18 Dec 2016 18:33:04 +0100
+Subject: [PATCH] Drop three dots on too long menu items.
+
+The unique part of the menu item can be kept outside of 
+the visible arena, while doing so, the '...' will appear.
+
+---
+diff --git a/drw.c b/drw.c
+index 80e3c39..16c8f70 100644
+--- a/drw.c
++++ b/drw.c
+@@ -285,8 +285,6 @@ drw_text(Drw *drw, int x, int y, unsigned int w, unsigned int h, const char *tex
+ 			if (len) {
+ 				memcpy(buf, utf8str, len);
+ 				buf[len] = '\0';
+-				if (len < utf8strlen)
+-					for (i = len; i && i > len - 3; buf[--i] = '.');
+ 
+ 				if (render) {
+
+-- 
+2.11.0
+
