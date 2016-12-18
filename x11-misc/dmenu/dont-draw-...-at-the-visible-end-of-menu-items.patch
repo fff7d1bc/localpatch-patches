@@ -1,0 +1,28 @@
+From 3b43973fe27b072ee7078ac22a0a0c9406f45e37 Mon Sep 17 00:00:00 2001
+From: KARBOWSKI Piotr <piotr.karbowski@gmail.com>
+Date: Sun, 18 Dec 2016 18:33:04 +0100
+Subject: [PATCH] Don't draw '...' at the visible end of menu items in case of
+ too long lines.
+
+I actually want to put the 'ID' outside of the visible area.
+---
+ drw.c | 3 ---
+ 1 file changed, 3 deletions(-)
+
+diff --git a/drw.c b/drw.c
+index c1582e7..be13244 100644
+--- a/drw.c
++++ b/drw.c
+@@ -302,9 +302,6 @@ drw_text(Drw *drw, int x, int y, unsigned int w, unsigned int h, unsigned int lp
+ 			if (len) {
+ 				memcpy(buf, utf8str, len);
+ 				buf[len] = '\0';
+-				if (len < utf8strlen)
+-					for (i = len; i && i > len - 3; buf[--i] = '.')
+-						; /* NOP */
+ 
+ 				if (render) {
+ 					ty = y + (h - usedfont->h) / 2 + usedfont->xfont->ascent;
+-- 
+2.11.0
+
