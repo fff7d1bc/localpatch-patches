@@ -1,0 +1,35 @@
+From 152f6c13ef759a51c585e5f075b0b904952ff5bc Mon Sep 17 00:00:00 2001
+From: KARBOWSKI Piotr <piotr.karbowski@gmail.com>
+Date: Sun, 15 Jan 2017 13:16:54 +0100
+Subject: [PATCH] Fix the typo to make the PEAP working with wpa_supplicant 2.6
+
+---
+ encryption/templates/wpa-peap  | 2 +-
+ encryption/templates/wpa2-peap | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/encryption/templates/wpa-peap b/encryption/templates/wpa-peap
+index 99145d4..db95981 100644
+--- a/encryption/templates/wpa-peap
++++ b/encryption/templates/wpa-peap
+@@ -13,5 +13,5 @@ network={
+     eap=PEAP
+     identity="$_DOMAIN\$_IDENTITY"
+     password="$_PASSWORD"
+-    phase2="auth=MSCHAPv2"
++    phase2="auth=MSCHAPV2"
+ }
+diff --git a/encryption/templates/wpa2-peap b/encryption/templates/wpa2-peap
+index 638ee0b..2c54120 100644
+--- a/encryption/templates/wpa2-peap
++++ b/encryption/templates/wpa2-peap
+@@ -13,5 +13,5 @@ network={
+     eap=PEAP
+     identity="$_DOMAIN\$_IDENTITY"
+     password="$_PASSWORD"
+-    phase2="auth=MSCHAPv2"
++    phase2="auth=MSCHAPV2"
+ }
+-- 
+2.11.0
+
