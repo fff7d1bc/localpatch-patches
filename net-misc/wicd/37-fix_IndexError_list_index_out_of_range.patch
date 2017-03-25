@@ -1,0 +1,22 @@
+Description: Fix "IndexError: list index out of range" in wicd-curses
+Origin: https://bugs.launchpad.net/wicd/+bug/1448685/comments/1
+Author: wicd@mailinator.com
+Bug-Debian: https://bugs.debian.org/812224
+Bug-ArchLinux: https://bugs.archlinux.org/task/43850?project=1&cat%5B0%5D=2&string=wicd
+Bug: https://bugs.launchpad.net/wicd/+bug/1421918
+
+Index: wicd/curses/wicd-curses.py
+===================================================================
+--- wicd.orig/curses/wicd-curses.py	2016-01-23 22:51:21.388576401 +0100
++++ wicd/curses/wicd-curses.py	2016-01-23 22:51:21.376576341 +0100
+@@ -532,7 +532,10 @@
+     def get_selected_profile(self):
+         """Get the selected wired profile"""
+         loc = self.get_focus()[1]
++        if loc >= len(self.theList):
++            loc = 0;
++
+         return self.theList[loc]
+ 
+ 
+ class AdHocDialog(Dialog2):
